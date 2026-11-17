@@ -1,0 +1,84 @@
+name: Deploy Phumulani Website
+
+on:
+  workflow_run:
+    workflows: ["Phumulani Comprehensive CI & Browser Verification Pipeline"]
+    branches:
+      - main
+    types:
+      - completed
+
+permissions: {}
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository }}
+
+    steps:
+      - name: Checkout exact CI-verified commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Validate TypeScript
+        run: npm run lint
+
+      - name: Build frontend website for GitHub Pages
+        env:
+          BASE_PATH: /phumulani/
+        run: |
+          npm run build:client
+          cp dist/index.html dist/404.html
+
+      - name: Verify compiled output and asset paths
+        run: |
+          test -f dist/index.html
+          test -f dist/404.html
+          test -d dist/assets
+          if grep -q 'src="/src/main.tsx"' dist/index.html; then
+            echo "ERROR: Development HTML detected"
+            exit 1
+          fi
+          if grep -rn '/phumulani/phumulani/' dist/; then
+            echo "ERROR: Duplicate /phumulani/phumulani/ asset prefix detected"
+            exit 1
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload compiled website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

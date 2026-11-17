@@ -1,0 +1,210 @@
+name: Phumulani Comprehensive CI & Browser Verification Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  # CI STAGES 1 - 4: DEPENDENCIES, TYPESCRIPT, BUILD & REGRESSION
+  verify-and-build:
+    name: "CI Stages 1-4: Verify, Build & Regression Suite"
+    timeout-minutes: 25
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      PHUMULANI_OPERATIONAL_MODE: STAGED_DEVELOPMENT
+      CI: 'true'
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Guard required npm lockfile, source directories & configuration files
+        shell: bash
+        run: |
+          echo "=== VERIFYING REPOSITORY INTEGRITY & GUARDS ==="
+          # 1. Prohibit foreign lockfiles
+          if [ -f bun.lock ] || [ -f bun.lockb ] || [ -f yarn.lock ] || [ -f pnpm-lock.yaml ]; then
+            echo "::error::Foreign lockfile detected (bun.lock/yarn.lock/pnpm-lock.yaml). Phumulani standardizes exclusively on package-lock.json."
+            exit 1
+          fi
+          # 2. Require tracked package-lock.json
+          if [ ! -s package-lock.json ]; then
+            echo "::error file=package-lock.json::Required tracked npm lockfile is missing. Google AI Studio sync must preserve package-lock.json."
+            exit 1
+          fi
+          if ! git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
+            echo "::error file=package-lock.json::package-lock.json must be tracked in Git."
+            exit 1
+          fi
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package-lock.json','utf8'));if(!p.lockfileVersion||!p.packages)process.exit(1)"
+          echo "Canonical package-lock.json is present, tracked, and structurally valid."
+          # 3. Guard essential source directories
+          for dir in src/views src/services src/types src/email src/components; do
+            if [ ! -d "$dir" ]; then
+              echo "::error::Critical source directory $dir is missing. Aborting CI."
+              exit 1
+            fi
+          done
+          # 4. Guard essential configuration files
+          for file in tsconfig.json vite.config.ts server.ts; do
+            if [ ! -s "$file" ]; then
+              echo "::error::Critical configuration file $file is missing. Aborting CI."
+              exit 1
+            fi
+          done
+          echo "All critical source directories and configuration files verified present."
+
+      - name: Setup Node.js Runtime (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      # CI Stage 1 — Dependency verification
+      - name: CI Stage 1 — Dependency Verification
+        run: |
+          echo "=== CI STAGE 1: RUNTIME & DEPENDENCY VERIFICATION ==="
+          node --version
+          npm --version
+          npm ci --no-audit --no-fund
+
+      # CI Stage 2 — TypeScript verification
+      - name: CI Stage 2 — TypeScript Verification
+        run: |
+          echo "=== CI STAGE 2: TYPESCRIPT TYPE-CHECKING ==="
+          npx tsc --noEmit
+
+      # CI Stage 3 — Application build (client, bundle isolation audit, Pages base path, and production server)
+      - name: CI Stage 3 — Application Build & Bundle Isolation Guard
+        run: |
+          echo "=== CI STAGE 3: APPLICATION & SERVER BUNDLE BUILD ==="
+          npm run build
+          test -f dist/index.html
+          test -f dist-server/server.mjs
+          echo "=== VERIFYING CLIENT BUNDLE ARCHITECTURAL ISOLATION ==="
+          node -e "const fs=require('fs'),path=require('path');const d=path.join('dist','assets');const files=fs.readdirSync(d).filter(f=>f.endsWith('.js'));const bad=['imapflow','nodemailer','child_process','GoogleGenAI','AutomatedTestRunner','ServerVerificationService','__vite-browser-external_node_async_hooks'];const leaks=[];for(const f of files){if(f.includes('async_hooks'))leaks.push('chunk:'+f);const c=fs.readFileSync(path.join(d,f),'utf8');for(const b of bad){if(c.includes(b))leaks.push(f+':'+b);}}if(leaks.length){console.error('CLIENT BUNDLE LEAK DETECTED:',leaks);process.exit(1);}console.log('Verified clean client bundle isolation across',files.length,'JS assets.');"
+          BASE_PATH=/phumulani/ npm run build:client
+          if grep -rn '/phumulani/phumulani/' dist/; then
+            echo "ERROR: Duplicate /phumulani/phumulani/ prefix detected in Pages build"
+            exit 1
+          fi
+
+      # CI Stage 3B — Brand Palette & Contrast Compliance Gate
+      - name: CI Stage 3B — Brand Palette & Contrast Compliance Audit
+        run: npx tsx scripts/verify_brand_palette.ts
+
+      # CI Stage 4 — Security Isolation, Email, Database, Vault & Authoritative Regression Suites
+      - name: CI Stage 4 — Security Isolation, Email, Database & Authoritative Regression Suites
+        run: |
+          echo "=== CI STAGE 4A: SECURITY & KNOWLEDGE ISOLATION SUITE ==="
+          npx tsx scripts/verify_security_and_knowledge_isolation.ts
+          echo "=== CI STAGE 4B: PHASE 62 PRODUCTION EMAIL INTEGRATION SUITE (35 TESTS) ==="
+          npx tsx scripts/verify_phase62_production_email.ts
+          echo "=== CI STAGE 4C: BLOCK 70 DATABASE INTEGRITY SUITE ==="
+          npx tsx scripts/verify_block70_database_integrity.ts
+          echo "=== CI STAGE 4D: BLOCKS 6-13 SECURITY & PERSISTENCE REGRESSION SUITE ==="
+          npx tsx scripts/verify_blocks6_to_13.ts
+          echo "=== CI STAGE 4E: BLOCKS 16-25 EMAIL, OAUTH & DLQ VERIFICATION SUITE ==="
+          npx tsx scripts/verify_blocks16_to_25.ts
+          echo "=== CI STAGE 4F: PHASES 63-75 ENTERPRISE EMAIL SYSTEM SUITE ==="
+          npx tsx scripts/verify_phases63_to_75_email_system.ts
+          echo "=== CI STAGE 4G: MILESTONE 4 EMAIL INTELLIGENCE SUITE ==="
+          npx tsx scripts/verify_milestone4_email_intelligence.ts
+          echo "=== CI STAGE 4H: PHASE 76 PRODUCTION EMAIL ACTIVATION SUITE ==="
+          npx tsx scripts/verify_phase76_production_email_activation.ts
+          echo "=== CI STAGE 4I: PHASE 77 STABILIZATION SUITE ==="
+          npx tsx scripts/verify_phase77_stabilization.ts
+          echo "=== CI STAGE 4J: PHASE 79 PRODUCTION REPAIR VERIFICATION SUITE ==="
+          npx tsx scripts/verify_phase79_production_repairs.ts
+          echo "=== CI STAGE 4K: PHASE 79.1 EMAIL DATA RESET & ANTI-RESEEDING SUITE ==="
+          npx tsx scripts/verify_phase79_1_email_reset.ts
+          echo "=== CI STAGE 4L: PHASE 80 SECURITY HARDENING & VAULT SUITE ==="
+          npx tsx scripts/verify_phase80_security_hardening.ts
+          echo "=== CI STAGE 4M: AUTHORITATIVE REGRESSION SUITE ==="
+          npx tsx scripts/verify_suite.ts
+
+  # CI STAGES 5 - 9: BROWSER TEST DISCOVERY & CROSS-BROWSER MATRIX
+  browser-tests:
+    name: "CI Stages 5-9: Browser Execution (${{ matrix.project }})"
+    needs: verify-and-build
+    timeout-minutes: 35
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit, 'Mobile Chrome']
+    env:
+      PHUMULANI_OPERATIONAL_MODE: STAGED_DEVELOPMENT
+      CI: 'true'
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Guard required npm lockfile, source directories & configuration files
+        shell: bash
+        run: |
+          if [ -f bun.lock ] || [ -f bun.lockb ] || [ -f yarn.lock ] || [ -f pnpm-lock.yaml ]; then
+            echo "::error::Foreign lockfile detected. Only package-lock.json is permitted."
+            exit 1
+          fi
+          if [ ! -s package-lock.json ]; then
+            echo "::error file=package-lock.json::Required tracked npm lockfile is missing."
+            exit 1
+          fi
+          if ! git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
+            echo "::error file=package-lock.json::package-lock.json must be tracked in Git."
+            exit 1
+          fi
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package-lock.json','utf8'));if(!p.lockfileVersion||!p.packages)process.exit(1)"
+          echo "Required tracked npm lockfile is present and structurally valid."
+
+      - name: Setup Node.js Runtime (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # CI Stage 5 — Browser test discovery
+      - name: CI Stage 5 — Browser Test Discovery
+        run: |
+          echo "=== CI STAGE 5: PLAYWRIGHT TEST DISCOVERY ==="
+          npx playwright test --list
+
+      # CI Stage 6 & 7 — Install Playwright browser binaries with OS deps
+      - name: Install Playwright ${{ matrix.project }} Dependencies
+        run: |
+          echo "=== INSTALLING SYSTEM DEPS FOR ${{ matrix.project }} ==="
+          if [ "${{ matrix.project }}" = "Mobile Chrome" ]; then
+            npx playwright install --with-deps chromium
+          else
+            npx playwright install --with-deps ${{ matrix.project }}
+          fi
+
+      # CI Stage 6 & 7 — Execute project tests
+      - name: Run Playwright E2E Tests (${{ matrix.project }})
+        run: |
+          echo "=== EXECUTING E2E TEST PROJECT: ${{ matrix.project }} ==="
+          npx playwright test --project="${{ matrix.project }}"
+
+      # CI Stage 9 — Preserve test artifacts
+      - name: Upload Playwright Artifacts (${{ matrix.project }})
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-artifacts-${{ matrix.project }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 14

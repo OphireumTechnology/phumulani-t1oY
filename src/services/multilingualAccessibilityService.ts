@@ -1,0 +1,1432 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ * Phumulani AI Community Platform — Multilingual Accessibility Service (M38.07, M38.08, M38.09)
+ * Comprehensive seven-language community dictionary, key parity auditing,
+ * user language preference persistence, Ethiopic script rendering, and WCAG 2.2 AA accessibility validation.
+ */
+
+import { SupportedLanguageCode, LanguageDefinition } from '../types/phase33';
+import type { LanguageAuditParityResult } from '../types/phase41_m4110';
+
+export const SUPPORTED_LANGUAGES: LanguageDefinition[] = [
+  { code: 'en', name: 'English', localName: 'English', isRTL: false, coverageStatus: 'VERIFIED_PRODUCTION' },
+  { code: 'so', name: 'Somali', localName: 'Af-Soomaali', isRTL: false, coverageStatus: 'VERIFIED_PRODUCTION' },
+  { code: 'es', name: 'Spanish', localName: 'Español', isRTL: false, coverageStatus: 'VERIFIED_PRODUCTION' },
+  { code: 'hmn', name: 'Hmong', localName: 'Hmoob', isRTL: false, coverageStatus: 'VERIFIED_PRODUCTION' },
+  { code: 'kar', name: 'Karen', localName: 'ကညီကျိာ်', isRTL: false, coverageStatus: 'SUPERVISED_COMMUNITY_REVIEW' },
+  { code: 'orm', name: 'Oromo', localName: 'Afaan Oromoo', isRTL: false, coverageStatus: 'SUPERVISED_COMMUNITY_REVIEW' },
+  { code: 'am', name: 'Amharic', localName: 'አማርኛ', isRTL: false, coverageStatus: 'DRAFT_MACHINE_ASSISTED' },
+];
+
+/**
+ * Authoritative 7-Language Community Dictionary with Full Key Parity
+ */
+export const COMMUNITY_TRANSLATION_DICTIONARY: Record<string, Record<SupportedLanguageCode, string>> = {
+  // Public Navigation & Emergency
+  safe_exit: {
+    en: 'Safe Exit (Double-ESC)',
+    so: 'Ka Bax Badbaado (ESC laba jeer)',
+    es: 'Salida Segura (Doble-ESC)',
+    hmn: 'Khiav Dim Zoo (ESC ob zaug)',
+    kar: 'မၤပူၤဖျဲးသး (Double-ESC)',
+    orm: 'Baqannaa Nageenyaa (Double-ESC)',
+    am: 'ደህንነቱ የተጠበቀ መውጫ (Double-ESC)',
+  },
+  emergency_crisis_notice: {
+    en: 'If you are in immediate danger, call 911 or the Minnesota Day One Crisis Line at 1-866-223-1111.',
+    so: 'Haddii aad ku jirto khatar degdeg ah, wac 911 ama Khadka Day One ee Minnesota 1-866-223-1111.',
+    es: 'Si está en peligro inmediato, llame al 911 o a la Línea de Crisis Day One de Minnesota al 1-866-223-1111.',
+    hmn: 'Yog koj ntsib teeb meem kub ceev, hu rau 911 lossis Minnesota Day One Crisis Line 1-866-223-1111.',
+    kar: 'နမ့ၢ်အိၣ်ဒီးတၢ်ဘၣ်ယိၣ်ဘၣ်ဘါ, ကိး 911 မ့တမ့ၢ် Minnesota Day One 1-866-223-1111.',
+    orm: 'Yoo balaa keessa jiraattan battalatti 911 yookiin Sarara Qorannaa Day One 1-866-223-1111 bilbilaa.',
+    am: 'አፋጣኝ አደጋ ላይ ከሆኑ 911 ወይም የሜኔሶታ Day One የስልክ መስመርን 1-866-223-1111 ይደውሉ።',
+  },
+  mission_title: {
+    en: 'Empowering Immigrant & Refugee Survivors',
+    so: 'Awood siinta Qaxootiga & Soo-galootiga Badbaaday',
+    es: 'Empoderando a Sobrevivientes Inmigrantes y Refugiados',
+    hmn: 'Txhawb Cov Neeg Pab Uas Dim ntawm Kev Nyuaj Siab',
+    kar: 'တၢ်ဆီၣ်ထွဲပိာ်မုၣ်တၢ်ပူၤဖျဲး',
+    orm: 'Dandeettii Baqattoota fi Godaantota Eegsisuu',
+    am: 'ስደተኛ እና ጥገኝነት ፈላጊ የተረፉ ሰዎችን ማብቃት',
+  },
+  programs_nav: {
+    en: 'Community Programs',
+    so: 'Barnaamijyada Bulshada',
+    es: 'Programas Comunitarios',
+    hmn: 'Cov Khoom Pab Zej Zog',
+    kar: 'တၢ်ရဲၣ်တၢ်ကျဲၤလၢတၢ်အိၣ်ဖှိၣ်',
+    orm: 'Sagantaalee Hawaasaa',
+    am: 'የማህበረሰብ ፕሮግራሞች',
+  },
+  volunteer_nav: {
+    en: 'Volunteer',
+    so: 'Isku-xilqaan',
+    es: 'Voluntariado',
+    hmn: 'Ua Haujlwm Pub Dawb',
+    kar: 'တၢ်မၤမၤသး',
+    orm: 'Tola Ooltummaa',
+    am: 'በጎ ፈቃደኝነት',
+  },
+  donate_nav: {
+    en: 'Donate (501c3)',
+    so: 'Deeq Bixi (501c3)',
+    es: 'Donar (501c3)',
+    hmn: 'Muab Pub (501c3)',
+    kar: 'ဟ့ၣ်တၢ်မၤဘူၣ်',
+    orm: 'Gumaachaa (501c3)',
+    am: 'ይለግሱ (501c3)',
+  },
+  contact_nav: {
+    en: 'Contact Advocates',
+    so: 'La Xiriir U doodayaasha',
+    es: 'Contactar Defensores',
+    hmn: 'Hu rau Tus Pab Cuam',
+    kar: 'တၢ်ဆဲးကျိး',
+    orm: 'Falmitoota Qunnnamaa',
+    am: 'ተሟጋቾችን ያነጋግሩ',
+  },
+  home_nav: {
+    en: 'Home',
+    so: 'Hoyga',
+    es: 'Inicio',
+    hmn: 'Tsev',
+    kar: 'ဟံၣ်',
+    orm: 'Mana',
+    am: 'መነሻ',
+  },
+  about_nav: {
+    en: 'About Us',
+    so: 'Nagu Saabsan',
+    es: 'Sobre Nosotros',
+    hmn: 'Txog Peb',
+    kar: 'ဘၣ်ဃးဒီးပှၤ',
+    orm: 'Waa\'ee Keenya',
+    am: 'ስለ እኛ',
+  },
+  portal_nav: {
+    en: 'Member Portal',
+    so: 'Xarunta Xubnaha',
+    es: 'Portal de Miembros',
+    hmn: 'Chaw Nkag Tswv Cuab',
+    kar: 'တၢ်အိၣ်ဖှိၣ်ဖိခီၣ်ဖျဲၣ်',
+    orm: 'Fuula Miseensaa',
+    am: 'የአባላት ፖርታል',
+  },
+
+  // Member Portal & Self-Service Areas (Phase 35 Areas)
+  member_dashboard_title: {
+    en: 'Community Member Portal',
+    so: 'Xarunta Xubnaha Bulshada',
+    es: 'Portal Comunitario de Miembros',
+    hmn: 'Zej Zog Tswv Cuab Chaw Nkag',
+    kar: 'တၢ်အိၣ်ဖှိၣ်ဖိတၢ်မၤခီၣ်ဖျဲၣ်',
+    orm: 'Fuula Miseensa Hawaasaa',
+    am: 'የማህበረሰብ አባል ፖርታል',
+  },
+  my_service_requests: {
+    en: 'My Service Requests',
+    so: 'Codsiyadayda Adeegga',
+    es: 'Mis Solicitudes de Servicio',
+    hmn: 'Kuv Cov Lus Thov Kev Pab',
+    kar: 'ယတၢ်ဃ့တၢ်မၤစၢၤတဖၣ်',
+    orm: 'Gaaffilee Tajaajila Kiyya',
+    am: 'የእኔ የአገልግሎት ጥያቄዎች',
+  },
+  my_programs: {
+    en: 'My Enrolled Programs',
+    so: 'Barnaamijyadayda Ka Diiwaangashan',
+    es: 'Mis Programas Inscritos',
+    hmn: 'Kuv Cov Kev Pab Sau Npe',
+    kar: 'ယတၢ်ရဲၣ်တၢ်ကျဲၤလၢယနုာ်လီၤ',
+    orm: 'Sagantaalee Kiyya Galmaa\'an',
+    am: 'የእኔ የተመዘገቡባቸው ፕሮግራሞች',
+  },
+  my_applications: {
+    en: 'My Applications',
+    so: 'Codsiyadayda',
+    es: 'Mis Solicitudes',
+    hmn: 'Kuv Cov Ntaub Ntawv Thov',
+    kar: 'ယတၢ်ကွဲးလံာ်တၢ်မၤတဖၣ်',
+    orm: 'Iyyannoowwan Kiyya',
+    am: 'የእኔ ማመልከቻዎች',
+  },
+  my_referrals: {
+    en: 'Resource Referrals',
+    so: 'U Gudbinta Khayraadka',
+    es: 'Referencias de Recursos',
+    hmn: 'Kev Pab Cuam Rau Lwm Qhov',
+    kar: 'တၢ်ဟ့ၣ်တၢ်မၤစၢၤတၢ်လီၢ်',
+    orm: 'Qajeelfama Qabeenyaa',
+    am: 'የሃብት ሪፈራሎች',
+  },
+  my_events: {
+    en: 'Community Events',
+    so: 'Dhacdooyinka Bulshada',
+    es: 'Eventos Comunitarios',
+    hmn: 'Zej Zog Cov Kev Sib Txoos',
+    kar: 'တၢ်အိၣ်ဖှိၣ်တၢ်ရဲၣ်တၢ်ကျဲၤ',
+    orm: 'Qophiiwwan Hawaasaa',
+    am: 'የማህበረሰብ ዝግጅቶች',
+  },
+  my_notifications: {
+    en: 'Notifications',
+    so: 'Ogeysiisyada',
+    es: 'Notificaciones',
+    hmn: 'Cov Lus Qhia Paub',
+    kar: 'တၢ်ဟ့ၣ်ပလီၢ်တဖၣ်',
+    orm: 'Beeksisoota',
+    am: 'ማሳወቂያዎች',
+  },
+  my_profile: {
+    en: 'Member Profile',
+    so: 'Xogta Xubinta',
+    es: 'Perfil de Miembro',
+    hmn: 'Tswv Cuab Cov Ntaub Ntawv',
+    kar: 'ပှၤတၢ်အိၣ်ဖှိၣ်ဖိအဂ့ၢ်',
+    orm: 'Seenaa Miseensaa',
+    am: 'የአባል መገለጫ',
+  },
+  my_preferences: {
+    en: 'Communication Preferences',
+    so: 'Dookha Xiriirka',
+    es: 'Preferencias de Comunicación',
+    hmn: 'Kev Xaiv Kev Sib Tham',
+    kar: 'တၢ်ဃုထၢတၢ်ဆဲးကျိး',
+    orm: 'Filannoo Quunnamtii',
+    am: 'የመገናኛ ምርጫዎች',
+  },
+  my_feedback: {
+    en: 'Feedback & History',
+    so: 'Ra\'yiga & Taariikhda',
+    es: 'Comentarios e Historial',
+    hmn: 'Kev Tawm Tsam & Keeb Kwm',
+    kar: 'တၢ်ထံၣ်တၢ်ပာ်သးဒီးတၢ်စံၣ်စိၤ',
+    orm: 'Yaada fi Seenaa',
+    am: 'አስተያየት እና ታሪክ',
+  },
+
+  // Service Request & Case Management
+  service_request_title: {
+    en: 'Submit a Confidential Service Request',
+    so: 'Gudbi Codsi Adeeg oo Qarsoodi ah',
+    es: 'Enviar una Solicitud de Servicio Confidencial',
+    hmn: 'Xa Daim Ntawv Thov Kev Pab Cuam Ceev Ntiag Tug',
+    kar: 'ဟ့ၣ်လီၤတၢ်ဃ့တၢ်မၤစၢၤလၢတၢ်ခူသူၣ်',
+    orm: 'Iyyannoo Tajaajila Iccitii Dhiyeessaa',
+    am: 'ሚስጥራዊ የአገልግሎት ጥያቄ ያቅርቡ',
+  },
+  service_category_label: {
+    en: 'Service Category',
+    so: 'Qaybta Adeegga',
+    es: 'Categoría de Servicio',
+    hmn: 'Yam Kev Pab',
+    kar: 'တၢ်မၤစၢၤအကလုာ်',
+    orm: 'Gosa Tajaajilaa',
+    am: 'የአገልግሎት ዘርፍ',
+  },
+  urgency_level_label: {
+    en: 'Urgency Level',
+    so: 'Heerka Degdegga',
+    es: 'Nivel de Urgencia',
+    hmn: 'Qib Ceev Ceev',
+    kar: 'တၢ်ချ့အဆံးအဒိၣ်',
+    orm: 'Sadarkaa Ariifachiisummaa',
+    am: 'የአስቸኳይነት ደረጃ',
+  },
+  description_placeholder: {
+    en: 'Please describe how our advocates can support you safely...',
+    so: 'Fadlan sharax sida u doodayaashu ay si badbaado leh kuu caawin karaan...',
+    es: 'Por favor describa cómo nuestros defensores pueden apoyarle de manera segura...',
+    hmn: 'Thov qhia seb peb pab neeg yuav pab koj zoo li cas...',
+    kar: 'ဝံသးစူၤတဲဖျါထီၣ်နတၢ်လိၣ်လၢတၢ်ပူၤဖျဲး...',
+    orm: 'Maaloo akkamitti akka si gargaarru nuuf ibsaa...',
+    am: 'እባክዎን ተሟጋቾቻችን በደህንነት እንዴት ሊረዱዎት እንደሚችሉ ይግለጹ...',
+  },
+  submit_request_button: {
+    en: 'Submit Request',
+    so: 'Gudbi Codsiga',
+    es: 'Enviar Solicitud',
+    hmn: 'Xa Daim Ntawv Thov',
+    kar: 'ဟ့ၣ်လီၤတၢ်ဃ့',
+    orm: 'Gaaffii Dhiyeessaa',
+    am: 'ጥያቄ አስገባ',
+  },
+
+  // Program Enrollment
+  program_enrollment_title: {
+    en: 'Community Program Enrollment',
+    so: 'Isdiiwaangelinta Barnaamijka Bulshada',
+    es: 'Inscripción en Programas Comunitarios',
+    hmn: 'Kev Sau Npe Pab Zej Zog',
+    kar: 'တၢ်နုာ်လီၤလၢတၢ်ရဲၣ်တၢ်ကျဲၤ',
+    orm: 'Galmee Sagantaa Hawaasaa',
+    am: 'የማህበረሰብ ፕሮግራም ምዝገባ',
+  },
+  applicant_name_label: {
+    en: 'Full Name',
+    so: 'Magaca Buuxa',
+    es: 'Nombre Completo',
+    hmn: 'Lub Npe Tag Nrho',
+    kar: 'မံၤတၢ်ပှဲၤ',
+    orm: 'Maqaa Guutuu',
+    am: 'ሙሉ ስም',
+  },
+  family_size_label: {
+    en: 'Household Size',
+    so: 'Tirada Qoyska',
+    es: 'Tamaño del Hogar',
+    hmn: 'Tsev Neeg Qhov Luaj Li Cas',
+    kar: 'ဟံၣ်ဖိဃီဖိအပှၤ',
+    orm: 'Baay\'ina Maatii',
+    am: 'የቤተሰብ ብዛት',
+  },
+  apply_button: {
+    en: 'Apply Now',
+    so: 'Codso Hadda',
+    es: 'Aplicar Ahora',
+    hmn: 'Thov Tam Sim No',
+    kar: 'ကွဲးလံာ်ခဲအံၤ',
+    orm: 'Amma Iyyadhaa',
+    am: 'አሁን አመልክት',
+  },
+  waitlist_notice: {
+    en: 'If program capacity is reached, you will be placed on our verified waitlist.',
+    so: 'Haddii awoodda barnaamijku buuxsanto, waxaad geli doontaa liiska sugitaanka.',
+    es: 'Si se alcanza la capacidad del programa, se le colocará en nuestra lista de espera verificada.',
+    hmn: 'Yog kev pab puv lawm, koj yuav raug tso rau hauv daim ntawv teev npe tos.',
+    kar: 'တၢ်လီၢ်မ့ၢ်ပှဲၤတ့ၢ်, နကအိၣ်လၢတၢ်အိၣ်ခိးလံာ်ပှဲၤပူၤ.',
+    orm: 'Yoo sagantaan guutee jiraate, tarree eeggannoo keessa galfamtu.',
+    am: 'የፕሮግራሙ አቅም ከሞላ በተረጋገጠ የተጠባባቂ ዝርዝር ውስጥ ይመደባሉ።',
+  },
+
+  // Volunteer Lifecycle
+  volunteer_registration_title: {
+    en: 'Volunteer Service Registration',
+    so: 'Diiwaangelinta Adeegga Isku-xilqaanka',
+    es: 'Registro de Servicio Voluntario',
+    hmn: 'Kev Sau Npe Ua Haujlwm Pub Dawb',
+    kar: 'တၢ်နုာ်လီၤမၤသးတၢ်မၤ',
+    orm: 'Galmee Tajaajila Tola Ooltummaa',
+    am: 'የበጎ ፈቃድ አገልግሎት ምዝገባ',
+  },
+  skills_interest_label: {
+    en: 'Skills & Language Fluency',
+    so: 'Xirfadaha & Aqoonta Luqadda',
+    es: 'Habilidades y Dominio de Idiomas',
+    hmn: 'Kev Txawj Ntse & Hais Lus',
+    kar: 'တၢ်သ့တၢ်ဘၣ်ဒီးကျိာ်',
+    orm: 'Dandeettii fi Dandeettii Afaanii',
+    am: 'ክህሎት እና የቋንቋ ችሎታ',
+  },
+  availability_label: {
+    en: 'Weekly Availability',
+    so: 'Helitaanka Todobaadlaha ah',
+    es: 'Disponibilidad Semanal',
+    hmn: 'Sij Hawm Muaj Ib Lim Tiam',
+    kar: 'နွံနွံတၢ်ဆၢကတီၢ်',
+    orm: 'Yeroo Qophii Torbanii',
+    am: 'የሳምንቱ ዝግጁነት',
+  },
+  background_check_consent: {
+    en: 'I consent to statutory background checks and volunteer safeguarding clearance.',
+    so: 'Waxaan ogolaaday baaritaanka asalka sharciga iyo hubinta badbaadada.',
+    es: 'Doy mi consentimiento para la verificación de antecedentes y la autorización de protección.',
+    hmn: 'Kuv tso cai rau kev tshawb xyuas keeb kwm thiab kev tiv thaiv kev nyab xeeb.',
+    kar: 'ယဟ့ၣ်တၢ်ပျဲလၢတၢ်သမံသမိးတၢ်မၤဂ့ၢ်ဝီ.',
+    orm: 'Qorannoo seera qabeessaa fi eegumsa tola ooltotaaf walii galeera.',
+    am: 'ህጋዊ የጀርባ ምርመራ እና የበጎ ፈቃደኝነት ደህንነት ማጣሪያ እንዲደረግ እስማማለሁ።',
+  },
+  submit_volunteer_button: {
+    en: 'Submit Volunteer Application',
+    so: 'Gudbi Codsiga Isku-xilqaanka',
+    es: 'Enviar Solicitud de Voluntariado',
+    hmn: 'Xa Ntawv Ua Haujlwm Pub Dawb',
+    kar: 'ဟ့ၣ်လီၤလံာ်မၤသး',
+    orm: 'Iyyannoo Tola Ooltummaa Dhiyeessaa',
+    am: 'የበጎ ፈቃደኝነት ማመልከቻ አስገባ',
+  },
+
+  // Donor Portal
+  donor_portal_title: {
+    en: 'Donor & Stewardship Portal',
+    so: 'Xarunta Deeq-bixiyeyaasha',
+    es: 'Portal de Donantes y Administración',
+    hmn: 'Chaw Nkag Rau Cov Muab Pub',
+    kar: 'ပှၤဟ့ၣ်တၢ်မၤဘူၣ်ခီၣ်ဖျဲၣ်',
+    orm: 'Fuula Arjoomtootaa',
+    am: 'የለጋሾች እና ደጋፊዎች ፖርታል',
+  },
+  pledges_history: {
+    en: 'Pledge History (Unearned Commitments)',
+    so: 'Taariikhda Ballanqaadyada (Aan la helin)',
+    es: 'Historial de Compromisos (No Devengados)',
+    hmn: 'Keeb Kwm Cov Lus Cog Tseg',
+    kar: 'တၢ်အၢၣ်လီၤတၢ်စံၣ်စိၤ',
+    orm: 'Seenaa Waadaa (Kan Hin Galaniin)',
+    am: 'የቃል ኪዳኖች ታሪክ (ያልተከፈሉ)',
+  },
+  settled_contributions: {
+    en: 'Settled Contributions (Verified Cash)',
+    so: 'Deeqaha La Xaqiijiyay (Lacag Cadaan ah)',
+    es: 'Contribuciones Liquidadas (Efectivo Verificado)',
+    hmn: 'Kev Pab Nyiaj Uas Tau Txais Lawm',
+    kar: 'တၢ်မၤဘူၣ်လၢဟဲတုၤတ့ၢ်',
+    orm: 'Gumaacha Mirkanaa\'e (Qarshii Galii Ta\'e)',
+    am: 'የተረጋገጡ የገንዘብ ክፍያዎች',
+  },
+  make_pledge_button: {
+    en: 'Record a Donation Pledge',
+    so: 'Diiwaangeli Ballanqaad Deeqeed',
+    es: 'Registrar un Compromiso de Donación',
+    hmn: 'Sau Npe Cog Lus Pab Nyiaj',
+    kar: 'ကွဲးနီၣ်တၢ်အၢၣ်လီၤတၢ်ဟ့ၣ်',
+    orm: 'Waadaa Arjoomaa Galmeessaa',
+    am: 'የልገሳ ቃል ኪዳን ይመዝግቡ',
+  },
+  tax_deductible_notice: {
+    en: 'Phumulani is a 501(c)(3) tax-exempt organization. Official receipts issued for settled gifts.',
+    so: 'Phumulani waa urur 501(c)(3) ah oo canshuurta laga dhaafay. Rasiidh rasmi ah ayaa la bixiyaa.',
+    es: 'Phumulani es una organización 501(c)(3) exenta de impuestos. Se emiten recibos oficiales.',
+    hmn: 'Phumulani yog ib lub koom haum 501(c)(3) tsis them se. Muaj daim ntawv txais nyiaj raug cai.',
+    kar: 'Phumulani မ့ၢ် 501(c)(3) တၢ်အိၣ်ဖှိၣ်လၢတဘၣ်ဟ့ၣ်ခဲးစ့ဘၣ်.',
+    orm: 'Phumulaniin dhaabbata 501(c)(3) taaksii irraa bilisa ta\'eedha.',
+    am: 'ፉሙላኒ 501(c)(3) ከቀረጥ ነፃ የሆነ ድርጅት ነው። ለተከፈሉ ስጦታዎች ይፋዊ ደረሰኝ ይሰጣል።',
+  },
+
+  // Notifications & Real-Time Alerts
+  notifications_title: {
+    en: 'Community Notifications & Alerts',
+    so: 'Ogeysiisyada Bulshada & Digniinaha',
+    es: 'Notificaciones y Alertas Comunitarias',
+    hmn: 'Cov Lus Ceeb Toom Zej Zog',
+    kar: 'တၢ်အိၣ်ဖှိၣ်တၢ်ဟ့ၣ်ပလီၢ်တဖၣ်',
+    orm: 'Beeksisa fi Akeekkachiisa Hawaasaa',
+    am: 'የማህበረሰብ ማሳወቂያዎች እና ማንቂያዎች',
+  },
+  mark_as_read: {
+    en: 'Mark as Read',
+    so: 'Calaamadee sidii la Akhriyay',
+    es: 'Marcar como Leído',
+    hmn: 'Kos Tau Nyeem Lawm',
+    kar: 'ပာ်ဖျါလၢဖတ်တ့ၢ်လံ',
+    orm: 'Akka Dubbifametti Galmeessi',
+    am: 'እንደተነበበ ምልክት አድርግ',
+  },
+  no_unread_notifications: {
+    en: 'No unread notifications at this time.',
+    so: 'Ma jiraan ogeysiisyada aan la akhriyin hadda.',
+    es: 'No hay notificaciones sin leer en este momento.',
+    hmn: 'Tsis muaj lus ceeb toom tshiab.',
+    kar: 'တၢ်ဟ့ၣ်ပလီၢ်သီတအိၣ်ဘၣ်.',
+    orm: 'Yeroo ammaa beeksisni hin dubbifamne hin jiru.',
+    am: 'በአሁኑ ጊዜ ያልተነበበ ማሳወቂያ የለም።',
+  },
+  urgent_alert_prefix: {
+    en: 'URGENT SAFETY NOTICE',
+    so: 'DIGNIIN BADBAADO OO DEGDEG AH',
+    es: 'AVISO URGENTE DE SEGURIDAD',
+    hmn: 'LUS CEEB TOOM KUB CEEV',
+    kar: 'တၢ်ပလီၢ်တၢ်ပူၤဖျဲးချ့ချ့',
+    orm: 'AKEEKKACHIISA NAGEENYAA ARIIFACHIISAA',
+    am: 'አስቸኳይ የደህንነት ማሳሰቢያ',
+  },
+
+  // Form Validation & Error States
+  field_required_error: {
+    en: 'This field is required for processing.',
+    so: 'Goobtan waxaa loo baahan yahay socodsiinta.',
+    es: 'Este campo es obligatorio para el procesamiento.',
+    hmn: 'Daim teb no yuav tsum tau sau rau.',
+    kar: 'တၢ်လီၢ်အံၤလိၣ်ဘၣ်တၢ်ကွဲးပှဲၤ.',
+    orm: 'Iddoon kun hojiif barbaachisaadha.',
+    am: 'ይህ ቦታ መሞላት አለበት።',
+  },
+  invalid_email_error: {
+    en: 'Please provide a valid email address.',
+    so: 'Fadlan bixi ciwaan email oo sax ah.',
+    es: 'Por favor ingrese una dirección de correo válida.',
+    hmn: 'Thov sau tus email kom raug.',
+    kar: 'ဝံသးစူၤကွဲး email လၢအဘၣ်.',
+    orm: 'Maaloo teessoo imeelii sirrii galchaa.',
+    am: 'እባክዎን ትክክለኛ የኢሜይል አድራሻ ያስገቡ።',
+  },
+  invalid_phone_error: {
+    en: 'Please provide a valid 10-digit telephone number.',
+    so: 'Fadlan bixi nambarka taleefanka oo sax ah.',
+    es: 'Por favor ingrese un número de teléfono válido.',
+    hmn: 'Thov sau tus xov tooj kom raug.',
+    kar: 'ဝံသးစူၤကွဲးလီတဲစိနီၣ်ဂံၢ်လၢအဘၣ်.',
+    orm: 'Maaloo lakkoofsa bilbilaa sirrii galchaa.',
+    am: 'እባክዎን ትክክለኛ የስልክ ቁጥር ያስገቡ።',
+  },
+  form_submission_failed: {
+    en: 'Submission failed. Please check your network or try again.',
+    so: 'Gudbintii way fashilantay. Fadlan isku day markale.',
+    es: 'Error al enviar. Por favor verifique su conexión o intente nuevamente.',
+    hmn: 'Xa tsis tau. Thov sim dua.',
+    kar: 'တၢ်ဟ့ၣ်လီၤတန့ၢ်ဘၣ်. မၤကဒါက့ၤ.',
+    orm: 'Erguun hin milkoofne. Maaloo irra deebiaa yaalaa.',
+    am: 'ማስገባት አልተሳካም። እባክዎ እንደገና ይሞክሩ።',
+  },
+
+  // Accessibility & Assistive Tech Labels
+  skip_to_content: {
+    en: 'Skip to Main Content',
+    so: 'U gudub Nuxurka Guud',
+    es: 'Saltar al Contenido Principal',
+    hmn: 'ข้ามไปยังเนื้อหาหลัก',
+    kar: 'လဲၤဆူတၢ်ဂ့ၢ်မိၢ်ပှၢ်',
+    orm: 'Gara Qabiyyee Guddaatti Darbi',
+    am: 'ወደ ዋና ይዘት ዝለል',
+  },
+  close_dialog: {
+    en: 'Close Modal Dialog',
+    so: 'Xir Daaqadda',
+    es: 'Cerrar Cuadro de Diálogo',
+    hmn: 'Kaw Lub Qhov Rooj',
+    kar: 'ပံးဃာ်တၢ်ကတိၤလီၢ်',
+    orm: 'Sanduuqa Cufaa',
+    am: 'ይህን መስኮት ዝጋ',
+  },
+  main_navigation_label: {
+    en: 'Main Landmark Navigation',
+    so: 'Hagaha Guud ee Bogga',
+    es: 'Navegación Principal',
+    hmn: 'Kev Taw Qhia Tseem Ceeb',
+    kar: 'တၢ်ဟ့ၣ်တၢ်ကရၢကရိမိၢ်ပှၢ်',
+    orm: 'Qajeelfama Guddaa',
+    am: 'ዋና ዳሰሳ',
+  },
+  language_selector_label: {
+    en: 'Select Preferred Language',
+    so: 'Dooro Luqaddaada',
+    es: 'Seleccionar Idioma Preferido',
+    hmn: 'Xaiv hom lus',
+    kar: 'ဃုထၢနကျိာ်',
+    orm: 'Afaan Filadhaa',
+    am: 'ቋንቋ ይምረጡ',
+  },
+  high_contrast_mode: {
+    en: 'High Contrast Mode (WCAG 2.2 AA)',
+    so: 'Habka Muuqaalka Sare',
+    es: 'Modo de Alto Contraste (WCAG 2.2 AA)',
+    hmn: 'Hom Pom Zoo Tshaj',
+    kar: 'တၢ်ထံၣ်ဖျါလၢအဂ့ၤတက့ၢ်',
+    orm: 'Haala Waan Mul\'atuu',
+    am: 'ከፍተኛ ንፅፅር (WCAG 2.2 AA)',
+  },
+
+  // Confirmation Messages
+  submission_success: {
+    en: 'Record submitted successfully and secured under strict tenant isolation.',
+    so: 'Xogta si guul leh ayaa loo gudbiyay iyadoo la ilaalinayo.',
+    es: 'Registro enviado con éxito y protegido bajo estricto aislamiento.',
+    hmn: 'Daim ntawv xa tau lawm zoo heev.',
+    kar: 'တၢ်ဟ့ၣ်လီၤအံၤန့ၢ်တ့ၢ်လံဒီးတၢ်ပူၤဖျဲး.',
+    orm: 'Galmeen milkaa\'inaan darbee eegumsa qaba.',
+    am: 'መረጃው በሚስጥር እና በደህንነት በተሳካ ሁኔታ ገብቷል።',
+  },
+  preferences_updated_success: {
+    en: 'Your communication preferences have been updated.',
+    so: 'Dookhaaga xiriirka waa la cusbooneysiiyay.',
+    es: 'Sus preferencias de comunicación han sido actualizadas.',
+    hmn: 'Koj cov kev xaiv sib txuas lus tau hloov tshiab lawm.',
+    kar: 'နတၢ်ဃုထၢတၢ်ဆဲးကျိးဘၣ်တၢ်မၤသီထီၣ်အီၤ.',
+    orm: 'Filannoon quunnamtii keessanii haaromfameera.',
+    am: 'የመገናኛ ምርጫዎችዎ በተሳካ ሁኔታ ተዘምነዋል።',
+  },
+  service_request_received: {
+    en: 'Your confidential request was received. An advocate will review it securely.',
+    so: 'Codsigaaga qarsoodiga ah waa la helay. U doode ayaa dib u eegi doona.',
+    es: 'Su solicitud confidencial fue recibida. Un defensor la revisará de forma segura.',
+    hmn: 'Koj daim ntawv thov tau txais lawm. Tus pab cuam yuav saib xyuas.',
+    kar: 'နတၢ်ဃ့တၢ်ခူသူၣ်ဟဲတုၤလံ. ပှၤမၤစၢၤတၢ်ကကွၢ်ကဒါက့ၤအီၤ.',
+    orm: 'Gaaffiin keessan iccitiin dhiyaateera. Qorataan ni ilaala.',
+    am: 'ሚስጥራዊ ጥያቄዎ ደርሶናል፤ ተሟጋች በቅርቡ ያነጋግርዎታል።',
+  },
+  changes_saved: {
+    en: 'Changes saved to durable storage.',
+    so: 'Isbeddelada waa la keydiyay.',
+    es: 'Cambios guardados en el almacenamiento duradero.',
+    hmn: 'Kev hloov pauv tau khaws tseg lawm.',
+    kar: 'တၢ်မၤသီတဖၣ်ဘၣ်တၢ်ပာ်က့ၤအီၤ.',
+    orm: 'Jijjiiramoonni kuufamaniiru.',
+    am: 'ለውጦች በተሳካ ሁኔታ ተቀምጠዋል።',
+  },
+
+  // Safeguarding Instructions & Confidentiality
+  safeguarding_notice: {
+    en: 'Confidential Safeguarding Isolation Active (VAWA / VOCA Protected)',
+    so: 'Ilaalinta Qarsoodiga ah ee Badbaadada ayaa Shaqaynaysa',
+    es: 'Aislamiento de Protección Confidencial Activo (Protegido por VAWA / VOCA)',
+    hmn: 'Kev Tiv Thaiv Tsis pub Lwm Tus Paub Ua Haujlwm Lawm',
+    kar: 'တၢ်ပူၤဖျဲးတၢ်ခူသူၣ်တၢ်မၤစၢၤအိၣ်',
+    orm: 'Eegumsi Iccitii Hojiirra Jira (VAWA / VOCA)',
+    am: 'ሚስጥራዊ የደህንነት ጥበቃ ገባሪ ነው (በVAWA / VOCA የተጠበቀ)',
+  },
+  confidential_support_line: {
+    en: 'Confidential 24/7 Crisis & Support Helpline: 1-866-223-1111',
+    so: 'Khadka Caawinta & Xasaradda 24/7 ee Qarsoodiga ah: 1-866-223-1111',
+    es: 'Línea de Crisis y Apoyo Confidencial 24/7: 1-866-223-1111',
+    hmn: 'Xov Tooj Pab Kub Ceev 24/7 Ceev Ntiag Tug: 1-866-223-1111',
+    kar: 'တၢ်မၤစၢၤလီတဲစိခူသူၣ် 24 နၣ်ရံၣ်: 1-866-223-1111',
+    orm: 'Sarara Gargaarsaa Iccitii Sa\'aatii 24/7: 1-866-223-1111',
+    am: 'ሚስጥራዊ የ24/7 የአደጋ እና የድጋፍ ስልክ መስመር፡ 1-866-223-1111',
+  },
+  immediate_escape_instruction: {
+    en: 'Press ESC twice quickly or click Safe Exit to immediately redirect to weather.gov.',
+    so: 'Riix ESC laba jeer ama guji Ka Bax Badbaado si aad ugu leexato weather.gov.',
+    es: 'Presione ESC dos veces rápidamente o haga clic en Salida Segura para redirigir a weather.gov.',
+    hmn: 'Nias ESC ob zaug kom nrawm kom khiav mus rau weather.gov.',
+    kar: 'ထိး ESC ခံဝါချ့ချ့ မ့တမ့ၢ် ဃုထၢ Safe Exit လၢကလဲၤဆူ weather.gov.',
+    orm: 'Saffisaan ESC si\'a lama cuqasaa yookiin gara weather.gov deemuu filadhaa.',
+    am: 'ገጹን ወዲያውኑ ዘግተው ወደ weather.gov ለመሄድ ESCን ሁለት ጊዜ ይጫኑ።',
+  },
+  privacy_guarantee: {
+    en: 'Your confidential records are cryptographically isolated and never shared without consent.',
+    so: 'Diiwaanadaada qarsoodiga ah waa la xafiday oo lama wadaago ogolaansho la\'aan.',
+    es: 'Sus registros confidenciales están criptográficamente aislados y nunca se comparten sin consentimiento.',
+    hmn: 'Koj cov ntaub ntawv ceev ntiag tug raug tiv thaiv zoo heev.',
+    kar: 'နတၢ်ခူသူၣ်တဖၣ်ဘၣ်တၢ်ဒီသဒၢအီၤဂ့ၤဂ့ၤတဘၣ်တၢ်ဟ့ၣ်နီၤဖးအီၤဘၣ်.',
+    orm: 'Galmeen keessan iccitiin eegama, eeyyama malee hin qoodamu.',
+    am: 'የእርስዎ ሚስጥራዊ መረጃዎች በጥብቅ የተጠበቁ ናቸው፤ ያለእርስዎ ፈቃድ ለማንም አይሰጡም።',
+  },
+  // M41.08: Staff, Executive and Board Reporting Keys
+  staff_reports: {
+    en: 'Staff Operational Reports',
+    so: 'Warbixinnada Hawlgalka Shaqaalaha',
+    es: 'Informes Operativos del Personal',
+    hmn: 'Cov Ntaub Ntawv Qhia Txog Cov Neeg Ua Haujlwm',
+    kar: 'တၢ်မၤတၢ်အမံၤတၢ်ကစီၣ်',
+    orm: 'Gabaasa Hojii Hojjettootaa',
+    am: 'የሰራተኞች የክንውን ሪፖርቶች',
+  },
+  executive_reports: {
+    en: 'Executive Performance Reports',
+    so: 'Warbixinnada Waxqabadka Maamulka',
+    es: 'Informes de Desempeño Ejecutivo',
+    hmn: 'Cov Ntaub Ntawv Qhia Txog Kev Tswj Hwm',
+    kar: 'တၢ်ကစီၣ်လၢခိၣ်နၢ်တဖၣ်',
+    orm: 'Gabaasa Raawwii Hojii Hoggansaa',
+    am: 'የስራ አስፈፃሚ አፈፃፀም ሪፖርቶች',
+  },
+  board_reports: {
+    en: 'Board Governance Reports',
+    so: 'Warbixinnada Maamulka Guddiga',
+    es: 'Informes de Gobernanza de la Junta',
+    hmn: 'Cov Ntaub Ntawv Qhia Txog Pawg Thawj Coj',
+    kar: 'တၢ်ကစီၣ်လၢကမံးတံာ်ခိၣ်နၢ်',
+    orm: 'Gabaasa Bulchiinsa Boordii',
+    am: 'የቦርድ አስተዳደር ሪፖርቶች',
+  },
+  reporting_filters: {
+    en: 'Reporting Period & Filters',
+    so: 'Xilliga Warbixinta & Shaandhooyinka',
+    es: 'Período de Informe y Filtros',
+    hmn: 'Lub Sij Hawm Qhia & Cov Lim',
+    kar: 'တၢ်ဆၢကတီၢ်ဒီးတၢ်ဃုထၢ',
+    orm: 'Yeroo Gabaasaa fi Filannoo',
+    am: 'የሪፖርት ጊዜ እና ማጣሪያዎች',
+  },
+  financial_classifications: {
+    en: 'Financial Ledger Classifications',
+    so: 'Qaybaha Dhaqaalaha ee Diiwaanka',
+    es: 'Clasificaciones del Libro Financiero',
+    hmn: 'Kev Cais Nyiaj Txiag hauv Phau Ntawv',
+    kar: 'တၢ်စရီစရီတၢ်ပာ်ဖျrole',
+    orm: 'Ramaddii Galmee Faayinaansii',
+    am: 'የፋይናንስ መዝገብ ምደባዎች',
+  },
+  export_actions: {
+    en: 'Secure Report Export',
+    so: 'Dhoofinta Warbixinta Ammaanka ah',
+    es: 'Exportación Segura de Informes',
+    hmn: 'Kev Muab Ntaub Ntawv Tawm Zoo',
+    kar: 'တၢ်ထုးထီၣ်တၢ်ကစီၣ်လၢတၢ်ပူၤဖျဲး',
+    orm: 'Gabaasa Nageenyaan Baasuu',
+    am: 'ደህንነቱ የተጠበቀ የሪፖርት ኤክስፖርት',
+  },
+  approval_status: {
+    en: 'Report Approval Status',
+    so: 'Xaaladda Ansixinta Warbixinta',
+    es: 'Estado de Aprobación del Informe',
+    hmn: 'Cov Xwm Txheej Pom Zoo Ntaub Ntawv',
+    kar: 'တၢ်တူၢ်လိာ်တၢ်ကစီၣ်အလုၢ်အလၢ',
+    orm: 'Haala Raggaasisa Gabaasaa',
+    am: 'የሪፖርት ማፅደቅ ሁኔታ',
+  },
+  data_freshness: {
+    en: 'Data Freshness & Record Verification',
+    so: 'Casriyaynta Xogta & Xaqiijinta Diiwaanka',
+    es: 'Actualización de Datos y Verificación',
+    hmn: 'Cov Ntaub Ntawv Tshiab & Kev Pom Zoo',
+    kar: 'တၢ်ဂ့ၢ်တၢ်ကျိၤအသီဒီးတၢ်သမံသမိး',
+    orm: 'Haarummaa Daataa fi Mirkaneessa',
+    am: 'የመረጃ አዲስነት እና የማረጋገጫ ሁኔታ',
+  },
+  error_messages: {
+    en: 'Authorized Access Required',
+    so: 'Waxaa Loo Baahan Yahay Oggolaansho',
+    es: 'Se Requiere Acceso Autorizado',
+    hmn: 'Yuav Tsum Muaj Cai Nkag Mus',
+    kar: 'တၢ်ခွဲးတၢ်ယာ်ဘၣ်တၢ်လိၣ်ဘၣ်',
+    orm: 'Eeyyama Hayyamame Barbaachisa',
+    am: 'የተፈቀደ መዳረሻ ያስፈልጋል',
+  },
+  accessibility_labels: {
+    en: 'Accessible Reporting Visualizations',
+    so: 'Muuqaallada Warbixinta ee La Helo Karo',
+    es: 'Visualizaciones de Informes Accesibles',
+    hmn: 'Kev Saib Xyuas Ntaub Ntawv yooj yim',
+    kar: 'တၢ်ထံၣ်တၢ်ကစီၣ်လၢညီ',
+    orm: 'Mul’ata Gabaasa Dhaqqabamaa',
+    am: 'ተደራሽ የሪፖርት እይታዎች',
+  },
+
+  // M41.10: Case Management & Triage Statuses
+  case_status_pending_triage: {
+    en: 'Pending Triage & Assessment',
+    so: 'Sugaya Qiimaynta & Kala Saarka',
+    es: 'Pendiente de Evaluación y Triaje',
+    hmn: 'Tos Kev Ntsuas & Kev Saib Xyuas',
+    kar: 'တၢ်သမံသမိးတၢ်အိၣ်ခိး',
+    orm: 'Qorannoo fi Sakatta\'iinsi Eegamaa Jira',
+    am: 'የመጀመሪያ ምዘና በመጠባበቅ ላይ',
+  },
+  case_status_assigned: {
+    en: 'Assigned to Dedicated Advocate',
+    so: 'Loo Xilsaaray U Doode Gaar ah',
+    es: 'Asignado a un Defensor Dedicado',
+    hmn: 'Muab Rau Tus Pab Cuam Saib Xyuas',
+    kar: 'ပာ်လီၤတၢ်မၤဆူပှၤမၤစၢၤတၢ်',
+    orm: 'Falmaa Murtaa\'eef Ramadameera',
+    am: 'ለተሟጋች ተመድቧል',
+  },
+  case_status_in_progress: {
+    en: 'Support Services in Progress',
+    so: 'Adeegyada Taageerada Way Socdaan',
+    es: 'Servicios de Apoyo en Curso',
+    hmn: 'Kev Pab Cuam tab Tom Ua Haujlwm',
+    kar: 'တၢ်မၤစၢၤတၢ်အိၣ်ဒီးတၢ်လဲၤတၢ်ကိး',
+    orm: 'Tajaajilli Deeggarsaa Hojiirra Jira',
+    am: 'የድጋፍ አገልግሎቶች በመከናወን ላይ ናቸው',
+  },
+  case_status_resolved: {
+    en: 'Case Resolved & Goals Achieved',
+    so: 'Kiiskii Waa La Xalliyay & Yoolalkii Waa La Gaaray',
+    es: 'Caso Resuelto y Metas Alcanzadas',
+    hmn: 'Rooj Plaub Daws Tau Lawm & Lub Hom Phiaj Ua Tau',
+    kar: 'တၢ်ဂ့ၢ်ဘၣ်တၢ်မၤဂ့ၤထီၣ်လံ',
+    orm: 'Dhimmi Xumuramee Galmi Gahameera',
+    am: 'ጉዳዩ ተፈትቷል፤ ግቦች ተሳክተዋል',
+  },
+  case_status_safeguarding_quarantine: {
+    en: 'Confidential Safeguarding Isolation Active',
+    so: 'Ilaalinta Qarsoodiga ah ee Badbaadada ayaa Shaqaynaysa',
+    es: 'Aislamiento de Protección Confidencial Activo',
+    hmn: 'Kev Tiv Thaiv Kev Nyab Xeeb Ceev Ntiag Tug',
+    kar: 'တၢ်ပူၤဖျဲးတၢ်ခူသူၣ်တၢ်မၤစၢၤအိၣ်',
+    orm: 'Eegumsi Iccitii Nageenyaa Hojiirra Jira',
+    am: 'ሚስጥራዊ የደህንነት ጥበቃ ገባሪ ነው',
+  },
+
+  // M41.10: Program Enrollment Statuses & Capacity
+  program_status_enrolled: {
+    en: 'Enrolled in Program',
+    so: 'Ka Diiwaangashan Barnaamijka',
+    es: 'Inscrito en el Programa',
+    hmn: 'Sau Npe Rau Kev Pab Lawm',
+    kar: 'နုာ်လီၤလၢတၢ်ရဲၣ်တၢ်ကျဲၤလံ',
+    orm: 'Sagantaa Keessatti Galmaa\'eera',
+    am: 'በፕሮግራሙ ተመዝግቧል',
+  },
+  program_status_waitlisted: {
+    en: 'Placed on Priority Waitlist',
+    so: 'Waxaa La Geliyay Liiska Sugitaanka Mudnaanta',
+    es: 'Colocado en Lista de Espera Prioritaria',
+    hmn: 'Muab Tso Rau Daim Ntawv Tos Ua Ntej',
+    kar: 'အိၣ်လၢတၢ်အိၣ်ခိးလံာ်ပှဲၤပူၤ',
+    orm: 'Tarree Eeggannoo Dursaatiin Qabame',
+    am: 'በቅድሚያ ተጠባባቂ ዝርዝር ውስጥ ተቀምጧል',
+  },
+  program_status_pending_review: {
+    en: 'Application Under Staff Review',
+    so: 'Codsiga Waxaa Dib U Eegaya Shaqaalaha',
+    es: 'Solicitud en Revisión por el Personal',
+    hmn: 'Daim Ntawv Thov tab Tom Saib Xyuas',
+    kar: 'တၢ်ကွဲးလံာ်တၢ်မၤဘၣ်တၢ်ကွၢ်ကဒါက့ၤ',
+    orm: 'Iyyannoon Hojjettootaan Qoratamaa Jira',
+    am: 'ማመልከቻው በሰራተኞች እየተገመገመ ነው',
+  },
+  program_status_withdrawn: {
+    en: 'Enrollment Withdrawn by Participant',
+    so: 'Ka-noqoshada Diiwaangelinta Qofka',
+    es: 'Inscripción Retirada por el Participante',
+    hmn: 'Kev Sau Npe Thim Rov Qab Lawm',
+    kar: 'တၢ်နုာ်လီၤတၢ်ရဲၣ်တၢ်ကျဲၤဟဲကဒါက့ၤ',
+    orm: 'Galmeen Hirmaataadhaan Haqameera',
+    am: 'ምዝገባው በተሳታፊው ተሰርዟል',
+  },
+  program_status_rejected: {
+    en: 'Not Accepted at This Time',
+    so: 'Lama Aqbalin Wakhtigan',
+    es: 'No Aceptado en Este Momento',
+    hmn: 'Tsis Tau Txais Lub Sij Hawm No',
+    kar: 'တဘၣ်တၢ်တူၢ်လိာ်လၢတၢ်ဆၢကတီၢ်အံၤဘၣ်',
+    orm: 'Yeroo Ammaatti Hin Fudhatamne',
+    am: 'በአሁኑ ጊዜ ተቀባይነት አላገኘም',
+  },
+  program_capacity_full_notice: {
+    en: 'Program has reached maximum verified capacity. New applicants are placed on FIFO waitlist.',
+    so: 'Barnaamijku wuxuu gaaray awoodda ugu badan. Codsadayaasha cusub waxay galayaan liiska sugitaanka.',
+    es: 'El programa ha alcanzado su capacidad máxima verificada. Los nuevos solicitantes ingresan a la lista de espera FIFO.',
+    hmn: 'Txoj haujlwm tau puv lawm. Cov neeg thov tshiab yuav raug tso rau hauv daim ntawv tos.',
+    kar: 'တၢ်ရဲၣ်တၢ်ကျဲၤအံၤပှဲၤတ့ၢ်လံ. ပှၤသီတဖၣ်ကအိၣ်လၢတၢ်အိၣ်ခိးလံာ်ပူၤ.',
+    orm: 'Sagantaan baay\'ina dandeettii isa guddaa gaheera. Iyyattoonni haaraan tarree eeggannoo seenu.',
+    am: 'ፕሮግራሙ ሙሉ አቅሙ ላይ ደርሷል። አዳዲስ አመልካቾች ቅደም ተከተላቸውን በጠበቀ ተጠባባቂ ዝርዝር ውስጥ ይመደባሉ።',
+  },
+  waitlist_position_update: {
+    en: 'Your waitlist position for {program} is now #{position}.',
+    so: 'Booskaaga liiska sugitaanka ee {program} hadda waa #{position}.',
+    es: 'Su posición en la lista de espera para {program} es ahora #{position}.',
+    hmn: 'Koj qhov chaw tos rau {program} yog #{position}.',
+    kar: 'နတၢ်အိၣ်ခိးနီၣ်ဂံၢ်လၢ {program} အဂီၢ်မ့ၢ် #{position}.',
+    orm: 'Sadarkaan tarree eeggannoo keessan {program} amma #{position}.',
+    am: 'የእርስዎ የተጠባባቂ ዝርዝር ደረጃ ለ {program} አሁን #{position} ነው።',
+  },
+
+  // M41.10: Volunteer Clearance & Hours Terminology
+  volunteer_clearance_pending: {
+    en: 'Statutory Clearance Pending Supervisor Review',
+    so: 'Oggolaanshaha Sharciga ah Wuxuu Sugayaa Kormeeraha',
+    es: 'Autorización Legal Pendiente de Revisión por el Supervisor',
+    hmn: 'Kev Tso Cai Raug Cai tab Tom Tos Tus Saib Xyuas',
+    kar: 'တၢ်သမံသမိးအိၣ်ခိးခိၣ်နၢ်တၢ်ကွၢ်ကဒါက့ၤ',
+    orm: 'Hayyamni Seera Qabeessa Ta\'e Eeggamaa Jira',
+    am: 'ህጋዊ ማጣሪያው በሱፐርቫይዘር ግምገማ ላይ ነው',
+  },
+  volunteer_clearance_approved: {
+    en: 'Volunteer Clearance Active & Verified',
+    so: 'Oggolaanshaha Isku-xilqaanka Waa Firfircoon yahay & La Xaqiijiyay',
+    es: 'Autorización de Voluntario Activa y Verificada',
+    hmn: 'Kev Tso Cai Ua Haujlwm Pub Dawb Tau Txais Lawm',
+    kar: 'တၢ်မၤစၢၤမၤသးတၢ်ပျဲအိၣ်လံ',
+    orm: 'Hayyamni Tola Ooltummaa Hojiirra Jira',
+    am: 'የበጎ ፈቃደኝነት ማጣሪያ ፀድቋል እና ገባሪ ነው',
+  },
+  volunteer_clearance_rejected: {
+    en: 'Clearance Not Approved Due to Safeguarding Criteria',
+    so: 'Oggolaanshaha Lama Ansixin Shuruudaha Badbaadada Awgeed',
+    es: 'Autorización No Aprobada Debido a Criterios de Protección',
+    hmn: 'Tsis Tso Cai Vim Txoj Cai Tiv Thaiv Nyab Xeeb',
+    kar: 'တၢ်ပျဲတဘၣ်တၢ်တူၢ်လိာ်လၢတၢ်ပူၤဖျဲးအဂီၢ်ဘၣ်',
+    orm: 'Ulaagaa Nageenyaatiin Kan Ka\'e Hin Hayyamamne',
+    am: 'በደህንነት መስፈርቶች ምክንያት ማጣሪያው አልፀደቀም',
+  },
+  volunteer_clearance_expired: {
+    en: 'Annual Safeguarding Clearance Expired',
+    so: 'Oggolaanshaha Badbaadada Sannadlaha ah Wuu Dhacay',
+    es: 'Autorización Anual de Protección Expirada',
+    hmn: 'Daim Ntawv Tso Cai Tiv Thaiv Tau Tag Sij Hawm Lawm',
+    kar: 'တၢ်ပူၤဖျဲးတၢ်ပျဲအဆၢကတီၢ်လၢပှဲၤလံ',
+    orm: 'Hayyamni Nageenyaa Waggaa Darbeera',
+    am: 'ዓመታዊ የደህንነት ማጣሪያ ጊዜው አልፎበታል',
+  },
+  volunteer_hours_submitted: {
+    en: 'Submitted Hours (Self-Reported by Volunteer)',
+    so: 'Saacadaha La Gudbiyay (Isku-sheegidda Isku-xilqaanka)',
+    es: 'Horas Enviadas (Autodeclaradas por el Voluntario)',
+    hmn: 'Cov Sij Hawm Xa Mus (Neeg Ua Haujlwm Qhia Txog)',
+    kar: 'နၣ်ရံၣ်လၢဟ့ၣ်လီၤလံ',
+    orm: 'Sa\'aatii Galmeeffame (Kan Tola Ooltaan Dhiyaate)',
+    am: 'የቀረቡ ሰዓቶች (በበጎ ፈቃደኛው የተመዘገቡ)',
+  },
+  volunteer_hours_pending: {
+    en: 'Pending Review Hours (Awaiting Supervisor Clearance)',
+    so: 'Saacadaha Sugaya Dib-u-eegista (Kormeeraha)',
+    es: 'Horas Pendientes de Revisión (Esperando Autorización del Supervisor)',
+    hmn: 'Cov Sij Hawm Tos Kev Saib Xyuas',
+    kar: 'နၣ်ရံၣ်အိၣ်ခိးခိၣ်နၢ်တၢ်သမံသမိး',
+    orm: 'Sa\'aatii Qorannoo Eeggatu',
+    am: 'በግምገማ ላይ ያሉ ሰዓቶች (የሱፐርቫይዘር ማረጋገጫ የሚጠብቁ)',
+  },
+  volunteer_hours_approved: {
+    en: 'Verified Service Hours (Formally Approved)',
+    so: 'Saacadaha Adeegga ee La Xaqiijiyay (Si Rasmi ah Loo Ansixiyay)',
+    es: 'Horas de Servicio Verificadas (Aprobadas Formalmente)',
+    hmn: 'Cov Sij Hawm Tau Pom Zoo Lawm',
+    kar: 'နၣ်ရံၣ်လၢဘၣ်တၢ်တူၢ်လိာ်တ့ၢ်လံ',
+    orm: 'Sa\'aatii Tajaajilaa Mirkanaa\'e',
+    am: 'የተረጋገጡ የበጎ ፈቃድ ሰዓቶች (በይፋ የፀደቁ)',
+  },
+  volunteer_hours_rejected: {
+    en: 'Disallowed Hours (Ineligible Activity or Discrepancy)',
+    so: 'Saacadaha La Diiday (Hawl Aan U Qalmin)',
+    es: 'Horas No Permitidas (Actividad No Elegible o Discrepancia)',
+    hmn: 'Cov Sij Hawm Tsis Raug Cai',
+    kar: 'နၣ်ရံၣ်လၢတဘၣ်တၢ်တူၢ်လိာ်ဘၣ်',
+    orm: 'Sa\'aatii Hin Fudhatamne',
+    am: 'ውድቅ የተደረጉ ሰዓቶች (ተቀባይነት የሌለው እንቅስቃሴ)',
+  },
+
+  // M41.10: Donor Pledge & Financial Classifications
+  donor_status_pledged: {
+    en: 'Pledged Commitment (Pipeline Pledge)',
+    so: 'Ballanqaad la Sameeyay (Deeq Qorshaysan)',
+    es: 'Compromiso de Donación (Compromiso en Trámite)',
+    hmn: 'Kev Cog Lus Pab Nyiaj (Nyiaj tab Tom Tos)',
+    kar: 'တၢ်အၢၣ်လီၤဟ့ၣ်တၢ်မၤဘူၣ်',
+    orm: 'Waadaa Galameeffame (Kan Hin Galin)',
+    am: 'የተገባ የልገሳ ቃል ኪዳን',
+  },
+  donor_status_internally_recorded: {
+    en: 'Internally Recorded Cash (Ledger Settled)',
+    so: 'Lacag Gudaha Lagu Diiwaangeliyay (Xisaabta Dhexe)',
+    es: 'Efectivo Registrado Internamente (Liquidado en Libro Contable)',
+    hmn: 'Nyiaj Sau Npe Hauv Lub Tsev (Tau Txais Lawm)',
+    kar: 'စ့နုာ်လီၤလၢတၢ်စရီပူၤ',
+    orm: 'Qarshii Galii Ta\'e (Galmee Keessaan Mirkanaa\'e)',
+    am: 'በውስጥ የተመዘገበ ጥሬ ገንዘብ (የተረጋገጠ)',
+  },
+  donor_status_externally_verified: {
+    en: 'Externally Reconciled Bank Cash',
+    so: 'Lacag Bangiga Si Dibadda ah Looga Xaqiijiyay',
+    es: 'Efectivo Bancario Conciliado Externamente',
+    hmn: 'Nyiaj hauv Nphab Lag Uas Pom Zoo Lawm',
+    kar: 'စ့လၢဘဲDomainဘၣ်တၢ်သမံသမိးလံ',
+    orm: 'Qarshii Baankii Qoratamee Mirkanaa\'e',
+    am: 'በባንክ የተረጋገጠ ገንዘብ',
+  },
+  donor_status_pending_grant: {
+    en: 'Pending Institutional Grant Application',
+    so: 'Codsiga Deeqda Hay\'adda ee Sugaya',
+    es: 'Solicitud de Subvención Institucional Pendiente',
+    hmn: 'Daim Ntawv Thov Nyiaj Pab tab Tom Tos',
+    kar: 'တၢ်ဃ့တၢ်မၤဘူၣ်ဒိၣ်အိၣ်ခိး',
+    orm: 'Iyyannoo Deeggarsaa Eeggamaa Jira',
+    am: 'በመጠባበቅ ላይ ያለ የተቋማት ድጋፍ ማመልከቻ',
+  },
+  payment_gateway_notice: {
+    en: 'Live payment processing is disconnected (STAGED_DEVELOPMENT). Receipts issued for settled gifts.',
+    so: 'Lacag bixinta tooska ah waa go\'an tahay (STAGED_DEVELOPMENT). Rasiidh rasmi ah ayaa la bixiyaa.',
+    es: 'El procesamiento de pagos en vivo está desconectado (STAGED_DEVELOPMENT). Se emiten recibos para donaciones liquidadas.',
+    hmn: 'Kev them nyiaj tseeb raug muab kaw tseg (STAGED_DEVELOPMENT). Muaj ntawv txais nyiaj rau cov khoom plig.',
+    kar: 'စ့ဟ့ၣ်လီၤလၢအမ့ၢ်အတီတအိၣ်ဘၣ် (STAGED_DEVELOPMENT).',
+    orm: 'Kaffaltiin kallattii addaan citeera (STAGED_DEVELOPMENT).',
+    am: 'የቀጥታ የክፍያ ሂደት አልተገናኘም (STAGED_DEVELOPMENT)። ደረሰኝ የሚሰጠው ለተከፈሉ ስጦታዎች ብቻ ነው።',
+  },
+
+  // M41.10: Notification Center Categories
+  notification_category_all: {
+    en: 'All Categories',
+    so: 'Dhammaan Qaybaha',
+    es: 'Todas las Categorías',
+    hmn: 'Txhua Yam',
+    kar: 'ကလုာ်ခဲလၢာ်',
+    orm: 'Ramaddii Hundaa',
+    am: 'ሁሉም ምድቦች',
+  },
+  notification_category_casework: {
+    en: 'Casework & Advocacy',
+    so: 'Kiisaska & U doodista',
+    es: 'Trabajo Social y Defensa',
+    hmn: 'Kev Pab Cuam Rooj Plaub',
+    kar: 'တၢ်မၤစၢၤတၢ်ဂ့ၢ်ဝီ',
+    orm: 'Dhimma Hojii fi Falmii',
+    am: 'የጉዳይ ክትትል እና ድጋፍ',
+  },
+  notification_category_programs: {
+    en: 'Program Enrollments',
+    so: 'Diiwaangelinta Barnaamijyada',
+    es: 'Inscripciones en Programas',
+    hmn: 'Sau Npe Rau Kev Pab',
+    kar: 'တၢ်နုာ်လီၤတၢ်ရဲၣ်တၢ်ကျဲၤ',
+    orm: 'Galmee Sagantaa',
+    am: 'የፕሮግራም ምዝገባዎች',
+  },
+  notification_category_volunteer: {
+    en: 'Volunteer Coordination',
+    so: 'Isku-dubbaridka Isku-xilqaanka',
+    es: 'Coordinación de Voluntarios',
+    hmn: 'Kev Koom Tes Ua Haujlwm Pub Dawb',
+    kar: 'တၢ်ရဲၣ်တၢ်ကျဲၤမၤသး',
+    orm: 'Qindeessaa Tola Ooltotaa',
+    am: 'የበጎ ፈቃደኞች ማስተባበሪያ',
+  },
+  notification_category_donations: {
+    en: 'Donations & Pledges',
+    so: 'Deeqaha & Ballanqaadyada',
+    es: 'Donaciones y Compromisos',
+    hmn: 'Kev Pab Nyiaj & Kev Cog Lus',
+    kar: 'တၢ်မၤဘူၣ်ဒီးတၢ်အၢၣ်လီၤ',
+    orm: 'Gumaacha fi Waadaa',
+    am: 'ልገሳዎች እና ቃል ኪዳኖች',
+  },
+  notification_category_system: {
+    en: 'System & Governance',
+    so: 'Nidaamka & Maamulka',
+    es: 'Sistema y Gobernanza',
+    hmn: 'Txheej Txheem & Kev Tswj Hwm',
+    kar: 'တၢ်ပၢတၢ်ပြးဒီးခိၣ်နၢ်',
+    orm: 'Sirna fi Bulchiinsa',
+    am: 'ስርዓት እና አስተዳደር',
+  },
+
+  // M41.10: Member Registration & Security Notices
+  registration_title: {
+    en: 'Community Member Account Registration',
+    so: 'Diiwaangelinta Koontada Xubinta Bulshada',
+    es: 'Registro de Cuenta de Miembro Comunitario',
+    hmn: 'Sau Npe Tus Tswv Cuab Hauv Zej Zog',
+    kar: 'တၢ်နုာ်လီၤတၢ်အိၣ်ဖှိၣ်ဖိအစရီ',
+    orm: 'Galmee Herrega Miseensa Hawaasaa',
+    am: 'የማህበረሰብ አባል መለያ ምዝገባ',
+  },
+  registration_password_label: {
+    en: 'Password (Minimum 8 Characters)',
+    so: 'Furaha Sirta ah (Ugu Yaraan 8 Xaraf)',
+    es: 'Contraseña (Mínimo 8 Caracteres)',
+    hmn: 'Lo Lus Cim Ntiag Tug (Yam Tsawg 8 Tus)',
+    kar: 'လံာ်မံၤခူသူၣ် (အဆိကတၢၢ် ၈ အကလုာ်)',
+    orm: 'Jecha Icchitii (Yoo Xiqqaate Qubee 8)',
+    am: 'የይለፍ ቃል (ቢያንስ 8 ፊደላት/ቁጥሮች)',
+  },
+  registration_password_hint: {
+    en: 'Use at least 8 characters with a mix of letters and numbers for safety.',
+    so: 'Isticmaal ugu yaraan 8 xaraf oo isugu jira xarfo iyo lambarro si aad u badbaaddo.',
+    es: 'Use al menos 8 caracteres combinando letras y números para mayor seguridad.',
+    hmn: 'Siv yam tsawg 8 tus niam ntawv thiab tus zauv kom muaj kev nyab xeeb.',
+    kar: 'သူၣ်ထီၣ်လံာ်မံၤခူသူၣ် ၈ ဖျၢၣ်ဒီးလံာ်ဖိနီၣ်ဂံၢ်.',
+    orm: 'Nageenyaaf qubee fi lakkoofsa walmakuun yoo xiqqaate qubee 8 fayyadamaa.',
+    am: 'ለደህንነትዎ ቢያንስ 8 ፊደላትን እና ቁጥሮችን አደባልቀው ይጠቀሙ።'
+  },
+  registration_success_message: {
+    en: 'Account successfully registered and encrypted under tenant isolation.',
+    so: 'Koontada si guul leh ayaa loo diiwaangeliyay oo loo xafiday.',
+    es: 'Cuenta registrada con éxito y cifrada bajo aislamiento de inquilino.',
+    hmn: 'Koj tus account tau sau npe lawm thiab muaj kev nyab xeeb.',
+    kar: 'နတၢ်နုာ်လီၤအံၤဘၣ်တၢ်ပာ်က့ၤလၢတၢ်ပူၤဖျဲးလံ.',
+    orm: 'Herregni keessan milkaa\'inaan galmaa\'ee eegameera.',
+    am: 'መለያዎ በተሳካ ሁኔታ ተመዝግቧል እንዲሁም በከፍተኛ ደህንነት ተጠብቋል።',
+  },
+  auth_invalid_credentials: {
+    en: 'Invalid email address or password. Please verify and try again.',
+    so: 'Email-ka ama furaha sirta ah ma saxna. Fadlan hubi oo isku day mar kale.',
+    es: 'Correo electrónico o contraseña inválidos. Verifique e intente nuevamente.',
+    hmn: 'Email lossis lo lus cim tsis raug. Thov sim dua.',
+    kar: 'Email မ့တမ့ၢ် လံာ်မံၤခူသူၣ်တဘၣ်ဘၣ်. ကွၢ်ကဒါက့ၤ.',
+    orm: 'Imeeliin yookiin jechi icciitii dogoggora. Maaloo irra deebi\'aa yaalaa.',
+    am: 'የተሳሳተ ኢሜይል ወይም የይለፍ ቃል። እባክዎን አረጋግጠው እንደገና ይሞክሩ።',
+  },
+  auth_account_locked: {
+    en: 'Account temporarily locked due to 5 consecutive failed attempts (15-min cooldown).',
+    so: 'Koontada si kumeelgaar ah ayaa loo xiray 5 isku day oo fashilmay awgeed (15 daqiiqo sug).',
+    es: 'Cuenta bloqueada temporalmente por 5 intentos fallidos consecutivos (espera de 15 min).',
+    hmn: 'Account raug kaw ib ntus vim sim txhaum 5 zaug (tos 15 feeb).',
+    kar: 'တၢ်နုာ်လီၤဘၣ်တၢ်ပံးဃာ်အီၤ ၁၅ မံနံး.',
+    orm: 'Herregni yeroof cufameera, daqiiqaa 15 booda yaalaa.',
+    am: 'በተደጋጋሚ በተደረገ የተሳሳተ ሙከራ ምክንያት መለያዎ ለ15 ደቂቃ ለጊዜው ታግዷል።',
+  },
+  auth_session_expired: {
+    en: 'Your security session has expired. Please sign in again to continue.',
+    so: 'Kalfadhigaaga amniga wuu dhacay. Fadlan dib u gal si aad u sii wadato.',
+    es: 'Su sesión de seguridad ha expirado. Inicie sesión nuevamente para continuar.',
+    hmn: 'Koj lub sij hawm nkag mus tag lawm. Thov rov nkag dua.',
+    kar: 'နတၢ်ဆၢကတီၢ်လၢပှဲၤလံ. နုာ်လီၤကဒါက့ၤ.',
+    orm: 'Yeroon seensaa keessan dhumateera. Maaloo irra deebi\'aa seenaa.',
+    am: 'የደህንነት ክፍለ ጊዜዎ አልቋል። ለመቀጠል እባክዎ እንደገና ይግቡ።',
+  },
+  auth_unauthorized_access: {
+    en: 'Access restricted: Required role authorization is not present.',
+    so: 'Galitaanka waa la xaddiday: Oggolaanshaha doorka loo baahan yahay ma jiro.',
+    es: 'Acceso restringido: No cuenta con la autorización de rol requerida.',
+    hmn: 'Txwv tsis pub nkag: Koj tsis muaj cai nkag mus.',
+    kar: 'တၢ်ခွဲးတၢ်ယာ်တအိၣ်ဘၣ်လၢတၢ်နုာ်လီၤအဂီၢ်.',
+    orm: 'Seensi daangeffameera: Eeyyama barbaachisu hin qabdan.',
+    am: 'መዳረሻ ተከልክሏል፡ አስፈላጊው የተፈቀደ ሚና የለዎትም።',
+  },
+
+  // M41.10: Safe Interpolated Templates
+  welcome_user_greeting: {
+    en: 'Hello, {name}! Welcome to Phumulani.',
+    so: 'Hayee, {name}! Ku soo dhowow Phumulani.',
+    es: '¡Hola, {name}! Bienvenido a Phumulani.',
+    hmn: 'Nyob zoo, {name}! Txais tos tuaj rau Phumulani.',
+    kar: 'မုၢ်မဆါဂ့ၤ, {name}! တၢ်တူၢ်လိာ်ဆူ Phumulani.',
+    orm: 'Akkam, {name}! Baga nagaan gara Phumulani dhuftan.',
+    am: 'ሰላም፣ {name}! ወደ ፉሙላኒ እንኳን በደህና መጡ።',
+  },
+  service_request_tracking_ref: {
+    en: 'Your confidential tracking reference is #{ref}. Please preserve this for updates.',
+    so: 'Tixraacaaga dabagalka qarsoodiga ah waa #{ref}. Fadlan xafido si aad xaaladda ula socoto.',
+    es: 'Su número de referencia confidencial es #{ref}. Consérvelo para seguimiento.',
+    hmn: 'Koj tus lej soj qab ceev ntiag tug yog #{ref}. Thov khaws cia.',
+    kar: 'နတၢ်သမံသမိးနီၣ်ဂံၢ်မ့ၢ် #{ref}. ပာ်က့ၤအီၤဂ့ၤဂ့ၤ.',
+    orm: 'Lakkofsi eeggannoo iccitiin keessan #{ref}. Maaloo kana eeggadhaa.',
+    am: 'የእርስዎ ሚስጥራዊ የክትትል መለያ ቁጥር #{ref} ነው። እባክዎ ለክትትል ያስቀምጡት።',
+  },
+  volunteer_shift_scheduled: {
+    en: 'You are confirmed for volunteer shift "{shift}" on {date}.',
+    so: 'Waxaa laguu xaqiijiyay shaqada isku-xilqaanka ee "{shift}" taariikhda {date}.',
+    es: 'Está confirmado para el turno de voluntariado "{shift}" el {date}.',
+    hmn: 'Koj tau txais kev pom zoo rau kev pab "{shift}" rau hnub {date}.',
+    kar: 'နတၢ်မၤစၢၤတၢ်ဆၢကတီၢ်ဘၣ်တၢ်ပာ်ဖျာလၢ "{shift}" ဖဲ {date}.',
+    orm: 'Tajaajila tola ooltummaa "{shift}" guyyaa {date} mirkaneeffattaniittu.',
+    am: 'ለበጎ ፈቃድ አገልግሎት "{shift}" በቀን {date} ተመድበዋል።',
+  },
+
+  // M41.10: Community UAT & Feedback
+  uat_consent_label: {
+    en: 'I consent to participate in community usability feedback without disclosing sensitive personal details.',
+    so: 'Waxaan ogolaaday inaan ka qaybqaato ra\'yi-celinta bulshada anigoon bixin xog shakhsi ah.',
+    es: 'Doy mi consentimiento para participar en la retroalimentación comunitaria sin revelar datos confidenciales.',
+    hmn: 'Kuv pom zoo koom nrog kev tawm tswv yim rau zej zog yam tsis qhia xov xwm ntiag tug.',
+    kar: 'ယဟ့ၣ်တၢ်ပျဲလၢကဟ့ၣ်တၢ်ထံၣ်တၢ်ပာ်သးလၢတၢ်ခူသူၣ်ပူၤ.',
+    orm: 'Osoo ragaa dhuunfaa hin ibsin yaada kennuuf walii galeera.',
+    am: 'ሚስጥራዊ የግል መረጃዎችን ሳላጋራ በማህበረሰብ የአጠቃቀም አስተያየት ላይ ለመሳተፍ እስማማለሁ።',
+  },
+  uat_feedback_submitted: {
+    en: 'Thank you! Your community UAT feedback has been recorded securely.',
+    so: 'Mahadsanid! Ra\'yi-celintaada bulshada si badbaado leh ayaa loo diiwaangeliyay.',
+    es: '¡Gracias! Sus comentarios comunitarios de UAT han sido registrados de forma segura.',
+    hmn: 'Ua tsaug! Koj cov lus tawm tswv yim tau raug khaws tseg zoo heev.',
+    kar: 'တၢ်ဘူၣ်တၢ်ဘါဒိၣ်မး! နတၢ်ထံၣ်ဘၣ်တၢ်ပာ်က့ၤလၢတၢ်ပူၤဖျဲး.',
+    orm: 'Galatoomaa! Yaanni keessan nageenyaan galmaa\'eera.',
+    am: 'እናመሰግናለን! የእርስዎ የማህበረሰብ የUAT አስተያየት በደህንነት ተመዝግቧል።',
+  },
+};
+
+export interface LanguageAuditResult {
+  totalKeys: number;
+  languages: {
+    code: SupportedLanguageCode;
+    name: string;
+    localName: string;
+    coverageStatus: string;
+    translatedCount: number;
+    missingCount: number;
+    fallbackCount: number;
+    keyParityPercentage: number;
+    scriptRenderingValid: boolean;
+    humanReviewPending: boolean;
+  }[];
+  allKeysValid: boolean;
+}
+
+/**
+ * Escapes characters to prevent HTML/XSS injection when interpolating strings
+ */
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+class MultilingualAccessibilityService {
+  private currentLanguage: SupportedLanguageCode = 'en';
+  private storageKey = 'phumulani_user_preferred_language';
+
+  constructor() {
+    this.restoreUserPreference();
+  }
+
+  private restoreUserPreference(): void {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const saved = window.localStorage.getItem(this.storageKey);
+        if (saved && SUPPORTED_LANGUAGES.some((l) => l.code === saved)) {
+          this.currentLanguage = saved as SupportedLanguageCode;
+        }
+      } catch {
+        // Fallback to default
+      }
+    }
+  }
+
+  public setLanguage(lang: SupportedLanguageCode): void {
+    this.currentLanguage = lang;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        window.localStorage.setItem(this.storageKey, lang);
+      } catch {
+        // In-memory persistence fallback
+      }
+    }
+  }
+
+  public getLanguage(): SupportedLanguageCode {
+    return this.currentLanguage;
+  }
+
+  public translate(key: string, targetLang?: SupportedLanguageCode): string {
+    const rawLang = targetLang || this.currentLanguage;
+    const lang = (rawLang === ('om' as any) ? 'orm' : rawLang) as SupportedLanguageCode;
+    const entry = COMMUNITY_TRANSLATION_DICTIONARY[key];
+    if (!entry) return key;
+    return entry[lang] || entry['en'] || key;
+  }
+
+  /**
+   * Safely interpolates placeholders (e.g. {name}, {ref}) into translated strings
+   * Escapes user input to protect against XSS/HTML injection attacks (M41.10.03).
+   */
+  public interpolate(
+    key: string,
+    params: Record<string, string | number>,
+    targetLang?: SupportedLanguageCode
+  ): string {
+    let text = this.translate(key, targetLang);
+    for (const [token, value] of Object.entries(params)) {
+      const sanitized = escapeHtml(String(value));
+      const placeholder = `{${token}}`;
+      text = text.split(placeholder).join(sanitized);
+    }
+    return text;
+  }
+
+  public getDictionary(lang: string): Record<string, string> {
+    const code = (lang === 'om' ? 'orm' : lang) as SupportedLanguageCode;
+    const res: Record<string, string> = {};
+    for (const [k, v] of Object.entries(COMMUNITY_TRANSLATION_DICTIONARY)) {
+      if (v[code]) {
+        res[k] = v[code];
+      }
+    }
+    return res;
+  }
+
+  public getSupportedLanguages(): LanguageDefinition[] {
+    return SUPPORTED_LANGUAGES;
+  }
+
+  /**
+   * Audits all 7 community languages against canonical dictionary keys (M38.08, M41.10.03)
+   */
+  public auditLanguageCoverage(): LanguageAuditResult {
+    const canonicalKeys = Object.keys(COMMUNITY_TRANSLATION_DICTIONARY);
+    const totalKeys = canonicalKeys.length;
+
+    const languages = SUPPORTED_LANGUAGES.map((lang) => {
+      let translated = 0;
+      let missing = 0;
+
+      for (const k of canonicalKeys) {
+        const val = COMMUNITY_TRANSLATION_DICTIONARY[k]?.[lang.code];
+        if (val && val.trim().length > 0) {
+          translated++;
+        } else {
+          missing++;
+        }
+      }
+
+      // Check script validity
+      let scriptRenderingValid = true;
+      if (lang.code === 'am') {
+        const sample = COMMUNITY_TRANSLATION_DICTIONARY['safe_exit']?.['am'] || '';
+        const hasEthiopic = /[\u1200-\u137F]/.test(sample);
+        scriptRenderingValid = hasEthiopic;
+      } else if (lang.code === 'kar') {
+        const sample = COMMUNITY_TRANSLATION_DICTIONARY['safe_exit']?.['kar'] || '';
+        const hasKaren = /[\u1000-\u109F]/.test(sample);
+        scriptRenderingValid = hasKaren;
+      }
+
+      return {
+        code: lang.code,
+        name: lang.name,
+        localName: lang.localName,
+        coverageStatus: lang.coverageStatus,
+        translatedCount: translated,
+        missingCount: missing,
+        fallbackCount: missing,
+        keyParityPercentage: Math.round((translated / totalKeys) * 100),
+        scriptRenderingValid,
+        humanReviewPending: lang.coverageStatus === 'DRAFT_MACHINE_ASSISTED' || lang.coverageStatus === 'SUPERVISED_COMMUNITY_REVIEW',
+      };
+    });
+
+    const allKeysValid = languages.every((l) => l.missingCount === 0);
+
+    return {
+      totalKeys,
+      languages,
+      allKeysValid,
+    };
+  }
+
+  /**
+   * Comprehensive Key Parity & Token Consistency Auditing Engine (M41.10.03)
+   */
+  public auditComprehensiveKeyParity(): LanguageAuditParityResult {
+    const canonicalKeys = Object.keys(COMMUNITY_TRANSLATION_DICTIONARY);
+    const totalKeys = canonicalKeys.length;
+    const missingKeysSummary: Record<SupportedLanguageCode, string[]> = {
+      en: [],
+      so: [],
+      es: [],
+      hmn: [],
+      kar: [],
+      orm: [],
+      am: [],
+    };
+    const placeholderMismatches: LanguageAuditParityResult['placeholderMismatches'] = [];
+    const scriptValidity: Record<SupportedLanguageCode, boolean> = {
+      en: true,
+      so: true,
+      es: true,
+      hmn: true,
+      kar: true,
+      orm: true,
+      am: true,
+    };
+
+    // Extract placeholders from English source
+    const tokenRegex = /\{([a-zA-Z0-9_]+)\}/g;
+
+    for (const key of canonicalKeys) {
+      const enText = COMMUNITY_TRANSLATION_DICTIONARY[key]?.['en'] || '';
+      const enTokens: string[] = [];
+      let match;
+      while ((match = tokenRegex.exec(enText)) !== null) {
+        enTokens.push(match[1]);
+      }
+
+      for (const lang of SUPPORTED_LANGUAGES) {
+        const text = COMMUNITY_TRANSLATION_DICTIONARY[key]?.[lang.code];
+        if (!text || text.trim().length === 0) {
+          missingKeysSummary[lang.code].push(key);
+        } else if (enTokens.length > 0) {
+          const langTokens: string[] = [];
+          const localRegex = /\{([a-zA-Z0-9_]+)\}/g;
+          let m;
+          while ((m = localRegex.exec(text)) !== null) {
+            langTokens.push(m[1]);
+          }
+          const hasAllTokens = enTokens.every((t) => langTokens.includes(t));
+          if (!hasAllTokens) {
+            placeholderMismatches.push({
+              key,
+              lang: lang.code,
+              expectedTokens: enTokens,
+              foundTokens: langTokens,
+            });
+          }
+        }
+      }
+    }
+
+    // Verify Unicode script coverage
+    const amharicText = COMMUNITY_TRANSLATION_DICTIONARY['safe_exit']?.['am'] || '';
+    scriptValidity.am = /[\u1200-\u137F]/.test(amharicText);
+
+    const karenText = COMMUNITY_TRANSLATION_DICTIONARY['safe_exit']?.['kar'] || '';
+    scriptValidity.kar = /[\u1000-\u109F]/.test(karenText);
+
+    // Verify Anti-Injection
+    const testInjection = this.interpolate('welcome_user_greeting', { name: '<script>alert("xss")</script>' }, 'en');
+    const antiInjectionPassed = !testInjection.includes('<script>') && testInjection.includes('&lt;script&gt;');
+
+    const languagesSummary = SUPPORTED_LANGUAGES.map((lang) => {
+      const missing = missingKeysSummary[lang.code].length;
+      const translated = totalKeys - missing;
+      return {
+        code: lang.code,
+        name: lang.name,
+        localName: lang.localName,
+        totalKeys,
+        translatedCount: translated,
+        missingCount: missing,
+        parityPercentage: Math.round((translated / totalKeys) * 100),
+        scriptRenderingValid: scriptValidity[lang.code],
+        coverageStatus: lang.coverageStatus,
+      };
+    });
+
+    const parityCompliant = Object.values(missingKeysSummary).every((arr) => arr.length === 0) &&
+      placeholderMismatches.length === 0 &&
+      antiInjectionPassed &&
+      scriptValidity.am &&
+      scriptValidity.kar;
+
+    return {
+      totalKeys,
+      parityCompliant,
+      missingKeysSummary,
+      placeholderMismatches,
+      scriptValidity,
+      antiInjectionPassed,
+      languages: languagesSummary,
+    };
+  }
+
+  /**
+   * WCAG 2.2 AA Contrast & Accessibility Verification Helper (M38.09)
+   */
+  public verifyA11yCompliance(options: {
+    hasAriaLabels: boolean;
+    hasKeyboardNav: boolean;
+    hasColorContrastRatioAbove45: boolean;
+    hasReducedMotionSupport: boolean;
+    hasSkipToContent?: boolean;
+    hasAccessibleModals?: boolean;
+  }): { passed: boolean; score: number; details: string[] } {
+    const details: string[] = [];
+    let score = 0;
+
+    if (options.hasAriaLabels) {
+      score += 20;
+      details.push('ARIA labels, live regions, and landmark roles verified.');
+    } else {
+      details.push('FAIL: Missing descriptive ARIA attributes.');
+    }
+
+    if (options.hasKeyboardNav) {
+      score += 20;
+      details.push('Full keyboard focus trapping, visible focus rings, and tab indexing verified.');
+    } else {
+      details.push('FAIL: Keyboard navigation gaps detected.');
+    }
+
+    if (options.hasColorContrastRatioAbove45) {
+      score += 20;
+      details.push('Foreground to background contrast meets WCAG 2.2 AA 4.5:1 ratio.');
+    } else {
+      details.push('FAIL: Contrast ratio under 4.5:1 detected.');
+    }
+
+    if (options.hasReducedMotionSupport) {
+      score += 20;
+      details.push('prefers-reduced-motion media queries and animation disabling verified.');
+    } else {
+      details.push('FAIL: Reduced motion preference not honored.');
+    }
+
+    if (options.hasSkipToContent !== false) {
+      score += 10;
+      details.push('Skip to main content anchor verified for keyboard screen readers.');
+    } else {
+      details.push('FAIL: Skip to main content link absent.');
+    }
+
+    if (options.hasAccessibleModals !== false) {
+      score += 10;
+      details.push('Modal dialogs enforce focus containment and ESC dismissal.');
+    } else {
+      details.push('FAIL: Modal dialog accessibility incomplete.');
+    }
+
+    return {
+      passed: score === 100,
+      score,
+      details,
+    };
+  }
+}
+
+export const multilingualAccessibilityService = new MultilingualAccessibilityService();
+

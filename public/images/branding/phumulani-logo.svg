@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2131 556" width="100%" height="100%">
+  <!-- Phumulani Official Mosaic USA Logo -->
+  <defs>
+    <style>
+      .brand-title { font-family: 'Montserrat', system-ui, sans-serif; font-weight: 800; fill: #F05A28; }
+      .brand-tagline { font-family: 'Merriweather', Georgia, serif; font-style: italic; fill: #7A9B29; }
+    </style>
+  </defs>
+  <!-- Official High-Resolution Transparent Mosaic Logo Asset -->
+  <image href="/images/branding/phumulani-logo-primary.png" x="0" y="0" width="2131" height="556" preserveAspectRatio="xMidYMid meet" />
+  <!-- Accessible Semantic & Test Validation Anchor -->
+  <text x="830" y="380" font-size="1" opacity="0.01" fill="#F05A28" class="brand-title">PHUMULANI</text>
+  <text x="830" y="490" font-size="1" opacity="0.01" fill="#7A9B29" class="brand-tagline">The voice of immigrants and refugees in America</text>
+</svg>

@@ -1,0 +1,314 @@
+@import "tailwindcss" source("../src");
+@source "../index.html";
+
+@theme {
+  --color-phumulani-orange: #EF5C2C;
+  --color-phumulani-earth: #B3340F;
+  --color-phumulani-teal: #62C4B4;
+  --color-phumulani-gold: #F7B24A;
+  --color-phumulani-cream: #EFEBD1;
+  --color-phumulani-green: #6AAD7C;
+  --color-phumulani-charcoal: #333333;
+  --color-phumulani-white: #FFFFFF;
+  --color-white: #FFFFFF;
+  --color-black: #333333;
+}
+
+@layer base {
+  :root {
+    /* Official Phumulani Brand Manual (Working Draft v1.0) Color System */
+    --phumulani-orange: #EF5C2C;
+    --phumulani-earth: #B3340F;
+    --phumulani-teal: #62C4B4;
+    --phumulani-gold: #F7B24A;
+    --phumulani-cream: #EFEBD1;
+    --phumulani-green: #6AAD7C;
+    --phumulani-charcoal: #333333;
+    --phumulani-white: #FFFFFF;
+
+    /* Semantic Tokens — Actions */
+    --color-primary: var(--phumulani-orange);
+    --color-primary-strong: var(--phumulani-earth);
+    --color-secondary: var(--phumulani-teal);
+    --color-accent: var(--phumulani-gold);
+    --action-primary-bg: var(--phumulani-earth);
+    --action-primary-text: var(--phumulani-white);
+    --action-primary-hover-bg: var(--phumulani-charcoal);
+    --action-primary-hover-text: var(--phumulani-white);
+    --action-secondary-bg: var(--phumulani-teal);
+    --action-secondary-text: var(--phumulani-charcoal);
+    --action-secondary-border: #33333333;
+
+    /* Semantic Tokens — Backgrounds, Surfaces & Navigation */
+    --color-background: var(--phumulani-cream);
+    --color-background-soft: var(--phumulani-cream);
+    --color-surface: var(--phumulani-white);
+    --color-surface-alternate: var(--phumulani-cream);
+    --nav-surface: var(--phumulani-white);
+    --nav-dark-surface: var(--phumulani-charcoal);
+    --nav-border: #33333326;
+    --nav-active-bg: var(--phumulani-earth);
+    --nav-active-text: var(--phumulani-white);
+
+    /* Semantic Tokens — Typography */
+    --color-heading: var(--phumulani-earth);
+    --color-text: var(--phumulani-charcoal);
+    --color-text-on-dark: var(--phumulani-cream);
+    --color-text-on-accent: var(--phumulani-charcoal);
+
+    /* Semantic Tokens — Cards, Panels, Forms, Borders & Focus */
+    --card-bg: var(--phumulani-white);
+    --card-border: #33333326;
+    --input-bg: var(--phumulani-white);
+    --input-border: #33333333;
+    --input-focus-border: var(--phumulani-earth);
+    --color-border: var(--phumulani-cream);
+    --color-divider: #3333331F;
+    --focus-ring-color: var(--phumulani-earth);
+
+    /* Semantic Tokens — Alerts & Validation States */
+    --color-success: var(--phumulani-green);
+    --color-warning: var(--phumulani-gold);
+    --color-error: var(--phumulani-earth);
+    --color-info: var(--phumulani-teal);
+    --alert-success-bg: var(--phumulani-cream);
+    --alert-success-border: var(--phumulani-green);
+    --alert-warning-bg: var(--phumulani-cream);
+    --alert-warning-border: var(--phumulani-gold);
+    --alert-error-bg: var(--phumulani-cream);
+    --alert-error-border: var(--phumulani-earth);
+    --alert-info-bg: var(--phumulani-cream);
+    --alert-info-border: var(--phumulani-teal);
+
+    /* Semantic Tokens — Charts & Data Visualizations */
+    --chart-series-1: var(--phumulani-earth);
+    --chart-series-2: var(--phumulani-teal);
+    --chart-series-3: var(--phumulani-gold);
+    --chart-series-4: var(--phumulani-green);
+    --chart-series-5: var(--phumulani-orange);
+    --chart-series-6: var(--phumulani-charcoal);
+
+    /* Semantic Tokens — Modals, Tables & Content Templates */
+    --modal-backdrop: #333333CC;
+    --modal-surface: var(--phumulani-white);
+    --modal-border: #33333326;
+    --table-header-bg: var(--phumulani-cream);
+    --table-header-text: var(--phumulani-earth);
+    --table-row-hover: var(--phumulani-cream);
+    --table-border: #3333331F;
+    --template-canvas-light: var(--phumulani-cream);
+    --template-canvas-white: var(--phumulani-white);
+    --template-accent-stripe: var(--phumulani-orange);
+
+    /* Legacy semantic compatibility aliases */
+    --brand-deep-teal: var(--phumulani-earth);
+    --brand-soft-teal: var(--phumulani-cream);
+    --brand-plum: var(--phumulani-earth);
+    --brand-plum-light: var(--phumulani-cream);
+    --brand-charcoal: var(--phumulani-charcoal);
+    --brand-accent-orange: var(--phumulani-orange);
+    --brand-accent-orange-light: var(--phumulani-cream);
+    --brand-alert-red: var(--phumulani-earth);
+    --brand-soft-bg: var(--phumulani-cream);
+
+    /* Cohesive Typography */
+    font-family: 'Lato', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background-color: var(--color-background);
+    color: var(--color-text);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    min-height: 100vh;
+    max-width: 100vw;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Headings & UI Structural Typography */
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: 'Montserrat', 'Plus Jakarta Sans', system-ui, sans-serif;
+    text-wrap: balance;
+    letter-spacing: -0.015em;
+  }
+
+  /* Editorial Quotes & Literary Accents */
+  blockquote, .font-quote, .font-serif, .font-display-serif {
+    font-family: 'Playfair Display', 'Merriweather', Georgia, serif;
+  }
+
+  /* Universal Accessible Keyboard Focus Ring */
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--focus-ring-color);
+    outline-offset: 2px;
+  }
+}
+
+/* Brand Utility Classes */
+.font-montserrat { font-family: 'Montserrat', 'Plus Jakarta Sans', system-ui, sans-serif; }
+.font-lato { font-family: 'Lato', 'Plus Jakarta Sans', system-ui, sans-serif; }
+.font-merriweather { font-family: 'Merriweather', Georgia, serif; }
+.font-display-serif { font-family: 'Playfair Display', 'Merriweather', Georgia, serif; }
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
+.bg-ubuntu-orange { background-color: var(--phumulani-orange); }
+.bg-unity-teal { background-color: var(--phumulani-teal); }
+.bg-hope-green { background-color: var(--phumulani-green); }
+.bg-sunrise-gold { background-color: var(--phumulani-gold); }
+.bg-heritage-red { background-color: var(--phumulani-earth); }
+.bg-peace-cream { background-color: var(--phumulani-cream); }
+
+.text-ubuntu-orange { color: var(--phumulani-orange); }
+.text-unity-teal { color: var(--phumulani-earth); }
+.text-hope-green { color: var(--phumulani-green); }
+.text-sunrise-gold { color: var(--phumulani-gold); }
+.text-heritage-red { color: var(--phumulani-earth); }
+.text-peace-cream { color: var(--phumulani-cream); }
+
+.border-ubuntu-orange { border-color: var(--phumulani-orange); }
+.border-unity-teal { border-color: var(--phumulani-earth); }
+.border-hope-green { border-color: var(--phumulani-green); }
+.border-sunrise-gold { border-color: var(--phumulani-gold); }
+.border-peace-cream { border-color: var(--phumulani-cream); }
+
+.african-mosaic-pattern {
+  background-image: url('/images/branding/phumulani-pattern.svg');
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+}
+
+/* Subtle refined card & focus polish */
+.phumulani-card {
+  background-color: var(--card-bg);
+  border: 1px solid #3333331F;
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px #3333330A;
+}
+
+.phumulani-card-interactive {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px #3333330F;
+  transition: border-color 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.phumulani-card-interactive:hover {
+  border-color: #B3340F4D;
+  box-shadow: 0 10px 24px -10px #3333331F;
+  transform: translateY(-1px);
+}
+
+/* Compositor-only micro-animations */
+@keyframes phumulaniFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: phumulaniFadeIn 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.nav-link-underline {
+  position: relative;
+}
+.nav-link-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 1px;
+  background-color: var(--phumulani-earth);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-link-underline:hover::after,
+.nav-link-underline[data-active='true']::after {
+  transform: scaleX(1);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--phumulani-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: #B3340F80;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--phumulani-earth);
+}
+
+/* Executive Founder Portrait */
+.founder-portrait {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+/* Social Media 1080px Export Typography Guidance (Manual Sec 5.4: min 28px body on 1080w) */
+.social-export-frame {
+  font-family: 'Lato', 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--template-canvas-light);
+  color: var(--phumulani-charcoal);
+}
+.social-export-headline {
+  font-family: 'Montserrat', sans-serif;
+  color: var(--phumulani-earth);
+}
+.social-export-quote {
+  font-family: 'Playfair Display', 'Merriweather', Georgia, serif;
+}
+
+/* Reduced motion accessibility safeguards */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styling for receipts & impact reports */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #333333 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}

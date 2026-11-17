@@ -1,0 +1,22 @@
+node_modules/
+build/
+dist/
+dist-server/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Runtime persistence and sensitive local state
+data/phumulani_persistent_db.json
+data/*.sqlite
+data/*.sqlite3
+data/*.db
+.email_connections_registry.json
+.sync_checkpoints_vault.json
+.oauth_tokens_vault.enc.json
+
+# Generated test output
+playwright-report/
+test-results/

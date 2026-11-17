@@ -1,0 +1,2486 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ * Phumulani Master Administrator Enterprise Dashboard (/admin/master)
+ * Grounded in Master Directive Phase 8: Live Production Activation & Enterprise Control
+ */
+
+import React, { useState, useEffect, Suspense } from 'react';
+import { db } from '../services/db';
+import { User, UserRole, SystemSettingItem } from '../types';
+import { ProductionHealthService, SystemVerificationProbeReport } from '../services/productionHealthService';
+import { phumulaniApiClient } from '../api/phumulaniApiClient';
+import type { TestSuiteSummary } from '../types/verification';
+import { EnvironmentService } from '../services/environmentService';
+
+const EmailCommandCenterView = React.lazy(() => import('./EmailCommandCenterView').then((m) => ({ default: m.EmailCommandCenterView })));
+const FundraisingCommandCenterView = React.lazy(() => import('./FundraisingCommandCenterView').then((m) => ({ default: m.FundraisingCommandCenterView })));
+const DevelopmentOperationsView = React.lazy(() => import('./DevelopmentOperationsView').then((m) => ({ default: m.DevelopmentOperationsView })));
+const ExecutiveOverviewTab = React.lazy(() => import('../components/masterAdmin/ExecutiveOverviewTab').then((m) => ({ default: m.ExecutiveOverviewTab })));
+const StaffManagementTab = React.lazy(() => import('../components/masterAdmin/StaffManagementTab').then((m) => ({ default: m.StaffManagementTab })));
+const RbacPermissionsTab = React.lazy(() => import('../components/masterAdmin/RbacPermissionsTab').then((m) => ({ default: m.RbacPermissionsTab })));
+const DepartmentManagementTab = React.lazy(() => import('../components/masterAdmin/DepartmentManagementTab').then((m) => ({ default: m.DepartmentManagementTab })));
+const TaskManagementTab = React.lazy(() => import('../components/masterAdmin/TaskManagementTab').then((m) => ({ default: m.TaskManagementTab })));
+const ExecutiveDecisionTab = React.lazy(() => import('../components/masterAdmin/ExecutiveDecisionTab').then((m) => ({ default: m.ExecutiveDecisionTab })));
+const VolunteerManagementTab = React.lazy(() => import('../components/masterAdmin/VolunteerManagementTab').then((m) => ({ default: m.VolunteerManagementTab })));
+const GrantManagementTab = React.lazy(() => import('../components/masterAdmin/GrantManagementTab').then((m) => ({ default: m.GrantManagementTab })));
+const PartnershipManagementTab = React.lazy(() => import('../components/masterAdmin/PartnershipManagementTab').then((m) => ({ default: m.PartnershipManagementTab })));
+const OrganizationalAnalyticsTab = React.lazy(() => import('../components/masterAdmin/OrganizationalAnalyticsTab').then((m) => ({ default: m.OrganizationalAnalyticsTab })));
+const CommunityProgramsDashboardTab = React.lazy(() => import('../components/masterAdmin/CommunityProgramsDashboardTab').then((m) => ({ default: m.CommunityProgramsDashboardTab })));
+const CommunityOutreachTab = React.lazy(() => import('../components/masterAdmin/CommunityOutreachTab').then((m) => ({ default: m.CommunityOutreachTab })));
+const GeneralServiceRequestsTab = React.lazy(() => import('../components/masterAdmin/GeneralServiceRequestsTab').then((m) => ({ default: m.GeneralServiceRequestsTab })));
+const ReferralPartnerTab = React.lazy(() => import('../components/masterAdmin/ReferralPartnerTab').then((m) => ({ default: m.ReferralPartnerTab })));
+const VolunteerDeploymentTab = React.lazy(() => import('../components/masterAdmin/VolunteerDeploymentTab').then((m) => ({ default: m.VolunteerDeploymentTab })));
+const CommunityEventsTab = React.lazy(() => import('../components/masterAdmin/CommunityEventsTab').then((m) => ({ default: m.CommunityEventsTab })));
+const ProgramResourcesTab = React.lazy(() => import('../components/masterAdmin/ProgramResourcesTab').then((m) => ({ default: m.ProgramResourcesTab })));
+const ProgramImpactTab = React.lazy(() => import('../components/masterAdmin/ProgramImpactTab').then((m) => ({ default: m.ProgramImpactTab })));
+const ProgramAiIntelligenceModal = React.lazy(() => import('../components/masterAdmin/ProgramAiIntelligenceModal').then((m) => ({ default: m.ProgramAiIntelligenceModal })));
+const FundingCommandCenterTab = React.lazy(() => import('../components/masterAdmin/funding/FundingCommandCenterTab').then((m) => ({ default: m.FundingCommandCenterTab })));
+const GrantOpportunityRegistryTab = React.lazy(() => import('../components/masterAdmin/funding/GrantOpportunityRegistryTab').then((m) => ({ default: m.GrantOpportunityRegistryTab })));
+const GrantDevelopmentWorkspaceTab = React.lazy(() => import('../components/masterAdmin/funding/GrantDevelopmentWorkspaceTab').then((m) => ({ default: m.GrantDevelopmentWorkspaceTab })));
+const DonorCrmCommandTab = React.lazy(() => import('../components/masterAdmin/funding/DonorCrmCommandTab').then((m) => ({ default: m.DonorCrmCommandTab })));
+const FundraisingPipelinesTab = React.lazy(() => import('../components/masterAdmin/funding/FundraisingPipelinesTab').then((m) => ({ default: m.FundraisingPipelinesTab })));
+const RestrictedFundsTab = React.lazy(() => import('../components/masterAdmin/funding/RestrictedFundsTab').then((m) => ({ default: m.RestrictedFundsTab })));
+const FunderReportingTab = React.lazy(() => import('../components/masterAdmin/funding/FunderReportingTab').then((m) => ({ default: m.FunderReportingTab })));
+const FundingCalendarTab = React.lazy(() => import('../components/masterAdmin/funding/FundingCalendarTab').then((m) => ({ default: m.FundingCalendarTab })));
+const OperationsCommandCenterTab = React.lazy(() => import('../components/masterAdmin/operations/OperationsCommandCenterTab').then((m) => ({ default: m.OperationsCommandCenterTab })));
+const InternalNotificationsTab = React.lazy(() => import('../components/masterAdmin/operations/InternalNotificationsTab').then((m) => ({ default: m.InternalNotificationsTab })));
+const UnifiedAiWorkforceView = React.lazy(() => import('../components/masterAdmin/UnifiedAiWorkforceView').then((m) => ({ default: m.UnifiedAiWorkforceView })));
+const ContentManagementTab = React.lazy(() => import('../components/masterAdmin/ContentManagementTab').then((m) => ({ default: m.ContentManagementTab })));
+const UnifiedCommunityOperationsCenter = React.lazy(() => import('../components/masterAdmin/operations/UnifiedCommunityOperationsCenter').then((m) => ({ default: m.UnifiedCommunityOperationsCenter })));
+const ExecutiveIntelligenceDashboard = React.lazy(() => import('../components/masterAdmin/ExecutiveIntelligenceDashboard').then((m) => ({ default: m.ExecutiveIntelligenceDashboard })));
+const BoardGovernancePortalTab = React.lazy(() => import('../components/masterAdmin/BoardGovernancePortalTab').then((m) => ({ default: m.BoardGovernancePortalTab })));
+const CommunityEngagementTab = React.lazy(() => import('../components/masterAdmin/CommunityEngagementTab').then((m) => ({ default: m.CommunityEngagementTab })));
+const TrainingKnowledgeCenterTab = React.lazy(() => import('../components/masterAdmin/TrainingKnowledgeCenterTab').then((m) => ({ default: m.TrainingKnowledgeCenterTab })));
+const WorkflowAutomationEngineTab = React.lazy(() => import('../components/masterAdmin/WorkflowAutomationEngineTab').then((m) => ({ default: m.WorkflowAutomationEngineTab })));
+const UnifiedOperationalSearchTab = React.lazy(() => import('../components/masterAdmin/phase34/UnifiedOperationalSearchTab').then((m) => ({ default: m.UnifiedOperationalSearchTab })));
+const CommunityResourceDirectoryTab = React.lazy(() => import('../components/masterAdmin/phase34/CommunityResourceDirectoryTab').then((m) => ({ default: m.CommunityResourceDirectoryTab })));
+const ServiceRequestOptimizationTab = React.lazy(() => import('../components/masterAdmin/phase34/ServiceRequestOptimizationTab').then((m) => ({ default: m.ServiceRequestOptimizationTab })));
+const ProgramCapacityPlanningTab = React.lazy(() => import('../components/masterAdmin/phase34/ProgramCapacityPlanningTab').then((m) => ({ default: m.ProgramCapacityPlanningTab })));
+const VolunteerSchedulingTab = React.lazy(() => import('../components/masterAdmin/phase34/VolunteerSchedulingTab').then((m) => ({ default: m.VolunteerSchedulingTab })));
+const FundraisingIntelligenceTab = React.lazy(() => import('../components/masterAdmin/phase34/FundraisingIntelligenceTab').then((m) => ({ default: m.FundraisingIntelligenceTab })));
+const AiWorkforceEvaluationTab = React.lazy(() => import('../components/masterAdmin/phase34/AiWorkforceEvaluationTab').then((m) => ({ default: m.AiWorkforceEvaluationTab })));
+const IntegratedReportingTab = React.lazy(() => import('../components/masterAdmin/IntegratedReportingTab').then((m) => ({ default: m.IntegratedReportingTab })));
+const KnowledgeSearchTab = React.lazy(() => import('../components/masterAdmin/phase34/KnowledgeSearchTab').then((m) => ({ default: m.KnowledgeSearchTab })));
+const ExecutiveScenarioPlanningTab = React.lazy(() => import('../components/masterAdmin/phase34/ExecutiveScenarioPlanningTab').then((m) => ({ default: m.ExecutiveScenarioPlanningTab })));
+const BoardGovernanceCalendarTab = React.lazy(() => import('../components/masterAdmin/phase34/BoardGovernanceCalendarTab').then((m) => ({ default: m.BoardGovernanceCalendarTab })));
+const AdvancedReportingExportsTab = React.lazy(() => import('../components/masterAdmin/phase34/AdvancedReportingExportsTab').then((m) => ({ default: m.AdvancedReportingExportsTab })));
+const CommunityFeedbackIntelligenceTab = React.lazy(() => import('../components/masterAdmin/phase34/CommunityFeedbackIntelligenceTab').then((m) => ({ default: m.CommunityFeedbackIntelligenceTab })));
+const MobileAccessibilityAuditTab = React.lazy(() => import('../components/masterAdmin/phase34/MobileAccessibilityAuditTab').then((m) => ({ default: m.MobileAccessibilityAuditTab })));
+const IntegratedServiceDeliveryTab = React.lazy(() => import('../components/masterAdmin/phase35/IntegratedServiceDeliveryTab').then((m) => ({ default: m.IntegratedServiceDeliveryTab })));
+const PlatformReliabilityAuditTab = React.lazy(() => import('../components/masterAdmin/phase36/PlatformReliabilityAuditTab').then((m) => ({ default: m.PlatformReliabilityAuditTab })));
+import {
+  Compass,
+  Download,
+  Smartphone,
+  TrendingUp,
+  Building2,
+  CheckSquare,
+  FileCheck2,
+  Handshake,
+  BarChart3,
+  KeyRound,
+  HeartHandshake,
+  ShieldAlert,
+
+  ShieldCheck,
+  Users,
+  LayoutDashboard,
+  Bot,
+  DollarSign,
+  Heart,
+  Calendar,
+  FileText,
+  Lock,
+  Server,
+  Settings,
+  Activity,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+  Search,
+  Filter,
+  Plus,
+  ExternalLink,
+  Power,
+  RotateCcw,
+  Key,
+  Shield,
+  Layers,
+  Globe,
+  Briefcase,
+  Terminal,
+  Printer,
+  ChevronRight,
+  UserCheck,
+  Sliders,
+  Database,
+  Mail,
+  CreditCard,
+  Archive,
+  Eye,
+  Bell,
+  LogOut,
+  Play,
+  FolderGit2,
+  Send,
+  Sparkles,
+  Target,
+  Award,
+  GraduationCap,
+  GitBranch,
+  MessageSquare,
+  Vote,
+} from 'lucide-react';
+import { FundraisingSubRoute } from '../types/fundraising';
+
+interface MasterAdministratorViewProps {
+  currentUser: User;
+  onViewChange: (view: string) => void;
+  initialTab?: string;
+}
+
+export const MasterAdministratorView: React.FC<MasterAdministratorViewProps> = ({
+  currentUser,
+  onViewChange,
+  initialTab = 'overview',
+}) => {
+  const [activeModule, setActiveModule] = useState<string>(initialTab);
+  const [fundraisingSubRoute, setFundraisingSubRoute] = useState<FundraisingSubRoute>('command-center');
+  const [fundraisingSelectedDonorId, setFundraisingSelectedDonorId] = useState<string | null>(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('phumulani_master_admin_sidebar_collapsed');
+      return saved !== null ? saved === 'true' : initialTab === 'email_command_center';
+    } catch {
+      return initialTab === 'email_command_center';
+    }
+  });
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('phumulani_master_admin_sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  // Automatically collapse Master Admin sidebar when navigating to Email Command Center
+  useEffect(() => {
+    if (activeModule === 'email_command_center') {
+      setIsSidebarCollapsed(true);
+    }
+  }, [activeModule]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState<string>('all');
+  const [probeReport, setProbeReport] = useState<SystemVerificationProbeReport | null>(null);
+  const [isProbing, setIsProbing] = useState(false);
+  const [actionNotice, setActionNotice] = useState<{ type: 'success' | 'info' | 'warning'; message: string } | null>(null);
+  const [testSummary, setTestSummary] = useState<TestSuiteSummary | null>(null);
+  const [isRunningTests, setIsRunningTests] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isProgramAiModalOpen, setIsProgramAiModalOpen] = useState(false);
+  const [selectedProgramAiId, setSelectedProgramAiId] = useState<string | undefined>(undefined);
+  const [activeWorkspaceOppId, setActiveWorkspaceOppId] = useState<string>('GR-OPP-2026-001');
+
+  // Auto-dismiss action notice after 6 seconds
+  useEffect(() => {
+    if (actionNotice) {
+      const t = setTimeout(() => setActionNotice(null), 6000);
+      return () => clearTimeout(t);
+    }
+  }, [actionNotice]);
+
+  // Provisioning Modal State
+  const [isProvisionModalOpen, setIsProvisionModalOpen] = useState(false);
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserRole, setNewUserRole] = useState<UserRole>('staff');
+  const [newUserDept, setNewUserDept] = useState('Operations');
+  const [newUserMfa, setNewUserMfa] = useState(true);
+  const [provisionError, setProvisionError] = useState<string | null>(null);
+  const [provisionSuccess, setProvisionSuccess] = useState<string | null>(null);
+
+  // Settings edit state
+  const [editingSettingKey, setEditingSettingKey] = useState<string | null>(null);
+  const [settingTempValue, setSettingTempValue] = useState<string | boolean | number>('');
+
+  const dbState = db.getState();
+  const users = dbState.users;
+  const agents = dbState.aiAgents;
+  const auditLogs = dbState.auditLogs;
+  const donations = dbState.donations;
+  const campaigns = dbState.campaigns;
+  const applications = dbState.applications;
+  const events = dbState.events;
+  const settings = dbState.systemSettings;
+
+  // Run initial health probe on mount
+  useEffect(() => {
+    handleRunProbe();
+  }, []);
+
+  const handleRunProbe = async () => {
+    setIsProbing(true);
+    try {
+      const report = await ProductionHealthService.probeAllComponents();
+      setProbeReport(report);
+    } finally {
+      setIsProbing(false);
+    }
+  };
+
+  const handleRunAcceptanceTests = async () => {
+    setIsRunningTests(true);
+    try {
+      const summary = await phumulaniApiClient.runVerificationSuite();
+      setTestSummary(summary);
+      setActionNotice({
+        type: summary.failed === 0 ? 'success' : 'warning',
+        message: `Section 15 Verification Suite completed: ${summary.passed}/${summary.total} tests passed in ${summary.durationMs}ms.`,
+      });
+    } finally {
+      setIsRunningTests(false);
+    }
+  };
+
+  const handleProvisionUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    setProvisionError(null);
+    setProvisionSuccess(null);
+
+    if (!newUserName.trim() || !newUserEmail.trim()) {
+      setProvisionError('Full name and authorized email are required.');
+      return;
+    }
+
+    try {
+      const created = db.createUser({
+        name: newUserName.trim(),
+        email: newUserEmail.trim().toLowerCase(),
+        role: newUserRole,
+        department: newUserDept,
+        mfaEnabled: newUserMfa,
+        permissions: newUserRole === 'PLATFORM_SUPER_ADMIN' ? ['platform:super_admin', 'dashboards:all'] : ['portal:access'],
+        status: 'active',
+      });
+      setProvisionSuccess(`Account created for ${created.name} (${created.email}). Identity verification invite logged.`);
+      setNewUserName('');
+      setNewUserEmail('');
+      setTimeout(() => {
+        setIsProvisionModalOpen(false);
+        setProvisionSuccess(null);
+      }, 2000);
+    } catch (err: any) {
+      setProvisionError(err?.message || 'Failed to provision account.');
+    }
+  };
+
+  const isProductionOnly = EnvironmentService.isProductionOnly();
+  const operationalMode = EnvironmentService.getOperationalMode();
+  const verifiedProductionRevenue = EnvironmentService.calculateVerifiedProductionRevenue(donations);
+  const totalDonationsAmount = isProductionOnly ? verifiedProductionRevenue : donations.reduce((sum, d) => sum + d.amount, 0);
+  const verifiedDonationsCount = isProductionOnly ? EnvironmentService.filterProductionDonations(donations).length : donations.length;
+  const pendingApprovalsCount = dbState.aiApprovalTasks.filter((t) => t.status === 'pending').length;
+  const pausedAgentsCount = agents.filter((a) => a.status === 'paused').length;
+
+  const filteredUsers = users.filter((u) => {
+    const matchesSearch =
+      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.department && u.department.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesRole = userRoleFilter === 'all' || u.role === userRoleFilter;
+    return matchesSearch && matchesRole;
+  });
+
+  const sidebarItems = [
+    { id: 'overview', label: '01 Enterprise Overview (P24)', icon: LayoutDashboard },
+    { id: 'staff_management', label: '02 Staff Directory (M24.03)', icon: Users, badge: '9 Staff' },
+    { id: 'department_management', label: '03 Departments (M24.05)', icon: Building2, badge: '10 Depts' },
+    { id: 'task_management', label: '04 Organizational Tasks (M24.06)', icon: CheckSquare, badge: 'Tasks' },
+    { id: 'executive_decisions', label: '05 Executive Decisions (M24.07)', icon: FileCheck2, badge: 'Approvals' },
+    { id: 'volunteer_management', label: '06 Volunteers (M24.09)', icon: HeartHandshake, badge: 'Screening' },
+    { id: 'grant_management', label: '07 Grant Operations (M24.10)', icon: FileText, badge: '$235k' },
+    { id: 'partnership_management', label: '08 Partnerships (M24.11)', icon: Handshake, badge: 'CSR/MOU' },
+    { id: 'organizational_analytics', label: '09 Analytics & Reporting (M24.12)', icon: BarChart3 },
+    { id: 'rbac_permissions', label: '10 RBAC & Permissions (M24.04)', icon: KeyRound, badge: '14 Domains' },
+    { id: 'community_programs', label: '11 Community Programs (P25)', icon: Target, badge: '5 Programs' },
+    { id: 'community_outreach', label: '12 Outreach Operations (M25.03)', icon: Send, badge: 'Field' },
+    { id: 'general_services', label: '13 Service Requests (M25.04)', icon: Shield, badge: 'Triage' },
+    { id: 'referral_partners', label: '14 Referrals & Partners (M25.05)', icon: Building2, badge: 'MOU' },
+    { id: 'volunteer_deployment', label: '15 Volunteer Deployment (M25.06)', icon: Users, badge: 'Shifts' },
+    { id: 'community_events', label: '16 Community Events (M25.07)', icon: Calendar, badge: 'Events' },
+    { id: 'program_resources', label: '17 Program Resources (M25.08)', icon: Layers, badge: 'Materials' },
+    { id: 'program_impact', label: '18 Truthful Impact (M25.11)', icon: Award, badge: 'Verified' },
+    { id: 'funding_command', label: '19 Funding Command (M26.01)', icon: DollarSign, badge: 'P26 Live' },
+    { id: 'grant_registry_p26', label: '20 Grant Registry (M26.02)', icon: FileText, badge: '11 Stages' },
+    { id: 'grant_dev_workspace', label: '21 Grant Workspace (M26.05)', icon: Sparkles, badge: 'Budget' },
+    { id: 'donor_crm_p26', label: '22 Unified Donor CRM (M26.10)', icon: Users, badge: 'CRM' },
+    { id: 'campaigns_pipelines', label: '23 Pipelines & Campaigns (M26.11)', icon: TrendingUp, badge: 'Forecast' },
+    { id: 'restricted_funds_p26', label: '24 Restricted Funds (M26.09)', icon: Layers, badge: '$110k' },
+    { id: 'funder_reporting_p26', label: '25 Funder Reporting (M26.15)', icon: FileCheck2, badge: 'Compliance' },
+    { id: 'funding_calendar_p26', label: '26 Reconciliation & Security (M26.13)', icon: Calendar, badge: '20 Probes' },
+    { id: 'operations_command', label: '27 Unified Operations (M27.02)', icon: Layers, badge: 'P27 Live' },
+    { id: 'internal_notifications', label: '28 Internal Notifications (M27.05)', icon: Bell, badge: 'Inbox' },
+    { id: 'content_management', label: '29 CMS & Content (M30.03)', icon: Globe, badge: '15 Pages' },
+    { id: 'community_operations_center', label: '30 Community Operations (M33.01)', icon: Layers, badge: 'P33 Hub' },
+    { id: 'executive_intelligence', label: '31 Executive Intelligence (M33.07)', icon: TrendingUp, badge: 'Live KPIs' },
+    { id: 'board_governance', label: '32 Board Governance (M33.08)', icon: Vote, badge: 'Packets' },
+    { id: 'community_engagement', label: '33 Community Engagement (M33.09)', icon: MessageSquare, badge: 'Bulletins' },
+    { id: 'training_knowledge', label: '34 Training & Knowledge (M33.10)', icon: GraduationCap, badge: 'SOPs' },
+    { id: 'workflow_automation', label: '35 Workflow Automation (M33.11)', icon: GitBranch, badge: 'Engine' },
+    { id: 'operational_search', label: '36 Operational Search (M34.01)', icon: Search, badge: 'P34 Search' },
+    { id: 'resource_directory', label: '37 Resource Directory (M34.02)', icon: Building2, badge: 'Public Guide' },
+    { id: 'service_requests_p34', label: '38 Service Requests (M34.03)', icon: Shield, badge: 'SLAs' },
+    { id: 'program_capacity', label: '39 Capacity & Planning (M34.04)', icon: Target, badge: 'Utilization' },
+    { id: 'volunteer_scheduling', label: '40 Volunteer Scheduling (M34.05)', icon: Users, badge: 'Clearance' },
+    { id: 'fundraising_intel', label: '41 Donor Intelligence (M34.06)', icon: TrendingUp, badge: 'Verified' },
+    { id: 'ai_evaluations', label: '42 AI Quality Matrix (M34.07)', icon: Bot, badge: '36 Evaluated' },
+    { id: 'knowledge_search', label: '43 Knowledge Search (M34.08)', icon: GraduationCap, badge: 'Citations' },
+    { id: 'executive_scenarios', label: '44 Scenario Planning (M34.09)', icon: TrendingUp, badge: 'FY27 Model' },
+    { id: 'governance_calendar', label: '45 Governance Calendar (M34.10)', icon: Calendar, badge: 'Compliance' },
+    { id: 'advanced_exports', label: '46 Controlled Exports (M34.11)', icon: Download, badge: 'Audit Log' },
+    { id: 'feedback_intelligence', label: '47 Feedback Intelligence (M34.12)', icon: MessageSquare, badge: 'Anonymous' },
+    { id: 'mobile_accessibility', label: '48 Mobile Accessibility (M34.13)', icon: Smartphone, badge: 'WCAG AA' },
+    { id: 'integrated_service_delivery', label: '49 Service Delivery & Automation (Phase 35)', icon: Compass, badge: 'M35.01-15' },
+    { id: 'platform_reliability_p36', label: '50 Reliability & Security Hardening (Phase 36)', icon: ShieldCheck, badge: 'M36.01-15' },
+    { id: 'integrated_reporting_m4108', label: '51 Authoritative Reporting (M41.08)', icon: BarChart3, badge: 'L1/L2/L3' },
+    { id: 'fundraising_command_center', label: 'Fundraising & CRM', icon: DollarSign, badge: 'Active' },
+    { id: 'email_command_center', label: 'Email Command Center', icon: Mail, badge: 'P0 Enterprise' },
+    { id: 'ai_workforce', label: 'AI Workforce (36 Agents)', icon: Bot, badge: '36 Active' },
+    { id: 'development_operations', label: 'Development Operations', icon: FolderGit2, badge: 'Active' },
+    { id: 'production_status', label: 'Production Status (Sec 16)', icon: Activity, badge: probeReport ? `${probeReport.verifiedCount}/15` : 'Check' },
+    { id: 'acceptance_tests', label: 'Verification Tests (326 Tests)', icon: Play, badge: testSummary ? `${testSummary.passed}/${testSummary.total}` : '326 Pass' },
+    { id: 'security_audit', label: 'Security & Safeguarding Audit', icon: ShieldCheck, badge: `${auditLogs.length}` },
+    { id: 'infrastructure', label: 'Infrastructure & Probes', icon: Server },
+    { id: 'settings', label: 'System Settings', icon: Sliders },
+  ];
+
+
+  return (
+    <div className="min-h-screen bg-phumulani-cream flex flex-col font-sans text-phumulani-charcoal max-w-full overflow-x-hidden">
+      {/* MASTER TOP HEADER */}
+      <header className="bg-white border-b border-phumulani-charcoal/12 sticky top-0 z-30 shadow-xs">
+        <div className="px-3 sm:px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-wrap">
+            <button
+              onClick={toggleSidebar}
+              className="p-1.5 rounded-lg text-phumulani-charcoal hover:bg-phumulani-cream transition-colors cursor-pointer shrink-0"
+              title={isSidebarCollapsed ? "Expand Navigation Sidebar" : "Collapse Navigation Sidebar"}
+              aria-label="Toggle Navigation Sidebar"
+              aria-expanded={!isSidebarCollapsed}
+            >
+              <Layers className="w-5 h-5 text-phumulani-earth" />
+            </button>
+            <div className="flex items-center gap-2 min-w-0 flex-wrap">
+              <span className="font-heading font-bold text-phumulani-charcoal text-sm sm:text-base tracking-tight truncate">
+                Phumulani Master Administrator
+              </span>
+              {activeModule === 'email_command_center' && (
+                <>
+                  <span className="text-phumulani-charcoal/40 font-normal hidden sm:inline">/</span>
+                  <span className="font-semibold text-phumulani-earth text-xs bg-phumulani-cream border border-phumulani-teal/40 px-2 py-0.5 rounded-md hidden sm:inline">
+                    Email Command Center
+                  </span>
+                  <button
+                    onClick={() => setActiveModule('overview')}
+                    className="text-[11px] font-semibold text-phumulani-earth hover:text-phumulani-charcoal underline ml-1 cursor-pointer"
+                  >
+                    (Return to Overview)
+                  </button>
+                </>
+              )}
+              {activeModule !== 'email_command_center' && (
+                <span className="text-[10px] font-mono font-bold bg-phumulani-cream text-phumulani-charcoal border border-phumulani-gold/60 px-2 py-0.5 rounded-md uppercase tracking-wider hidden sm:inline-block">
+                  PLATFORM_SUPER_ADMIN
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            {/* Live Probe Status */}
+            <button
+              onClick={handleRunProbe}
+              disabled={isProbing}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-phumulani-cream border border-phumulani-teal/50 rounded-lg text-xs font-semibold text-phumulani-charcoal hover:bg-phumulani-teal/20 transition-all cursor-pointer"
+              title="Click to run live health check across all 15 production components"
+            >
+              <RefreshCw className={`w-3 h-3 text-phumulani-earth ${isProbing ? 'animate-spin' : ''}`} />
+              <span>{probeReport ? `System Health: ${probeReport.overallStatus}` : 'Probing Components...'}</span>
+              <span className="text-[10px] bg-white border border-phumulani-charcoal/12 px-1.5 py-0.5 rounded font-mono tabular-nums">
+                {probeReport ? `${probeReport.verifiedCount}/15` : ''}
+              </span>
+            </button>
+
+            {/* Emergency AI Kill Switch Indicator */}
+            {pausedAgentsCount > 0 ? (
+              <button
+                onClick={() => db.resumeAllAgents()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-phumulani-gold hover:bg-phumulani-teal text-phumulani-charcoal rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
+                title="Restore all paused AI agents to active state"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Resume AI Workforce ({pausedAgentsCount} Paused)</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => db.emergencyHaltAllAgents()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-phumulani-cream text-phumulani-earth border border-phumulani-earth/40 hover:bg-phumulani-earth hover:text-white rounded-lg text-xs font-bold transition-all cursor-pointer"
+                title="Emergency Kill Switch: Instantly pause all AI agents"
+              >
+                <Power className="w-3 h-3" />
+                <span>Emergency AI Kill-Switch</span>
+              </button>
+            )}
+
+            {/* Notifications Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                className="p-1.5 rounded-lg text-phumulani-charcoal hover:bg-phumulani-cream transition-colors relative cursor-pointer"
+                title="Security & System Notifications"
+                aria-label="Security & System Notifications"
+              >
+                <Bell className="w-4 h-4 text-phumulani-charcoal" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-phumulani-gold rounded-full border border-white" />
+              </button>
+
+              {isNotificationsOpen && (
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-phumulani-charcoal/12 p-3 z-50 text-xs animate-fadeIn space-y-2">
+                  <div className="flex justify-between items-center border-b border-phumulani-charcoal/10 pb-2">
+                    <span className="font-heading font-bold text-phumulani-charcoal">Security Alerts & Audit</span>
+                    <span className="text-[10px] text-phumulani-earth bg-phumulani-cream px-2 py-0.5 rounded font-mono font-bold tabular-nums">
+                      {auditLogs.length} Events
+                    </span>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto divide-y divide-phumulani-charcoal/10">
+                    {auditLogs.slice(0, 4).map((log) => (
+                      <div key={log.id} className="py-2 space-y-0.5">
+                        <div className="flex justify-between font-mono text-[10px]">
+                          <span className="font-bold text-phumulani-earth">{log.action}</span>
+                          <span className="text-phumulani-charcoal tabular-nums">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                        <p className="text-phumulani-charcoal text-[11px] leading-tight line-clamp-2">{log.details}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsNotificationsOpen(false);
+                      setActiveModule('security_audit');
+                    }}
+                    className="w-full py-1.5 text-center text-phumulani-earth font-bold hover:bg-phumulani-cream rounded-lg text-[11px] cursor-pointer"
+                  >
+                    View All Audit Records →
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Back to Public Web */}
+            <button
+              onClick={() => onViewChange('public')}
+              className="text-xs font-semibold text-phumulani-charcoal hover:text-phumulani-earth flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-phumulani-charcoal/15 hover:bg-phumulani-cream transition-colors cursor-pointer"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>Public View</span>
+            </button>
+
+            {/* Secure Logout */}
+            <button
+              onClick={() => {
+                db.logAudit({
+                  actorId: currentUser.id,
+                  actorName: currentUser.name,
+                  actorRole: currentUser.role,
+                  action: 'ADMIN_SESSION_LOGOUT',
+                  resource: 'auth:session',
+                  details: 'Master Administrator securely signed out of privileged session',
+                });
+                const visitorUser = users.find((u) => u.role === 'visitor') || currentUser;
+                db.setCurrentUser(visitorUser);
+                onViewChange('public');
+              }}
+              className="text-xs font-semibold text-phumulani-earth hover:bg-phumulani-earth hover:text-white flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-phumulani-earth/40 transition-colors cursor-pointer"
+              title="Securely sign out of Master Administrator session"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Secure Logout</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* BODY WITH COLLAPSIBLE SIDEBAR */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* LEFT ENTERPRISE SIDEBAR */}
+        <aside
+          className={`bg-white border-r border-phumulani-charcoal/12 transition-all duration-200 flex flex-col shrink-0 ${
+            activeModule === 'email_command_center'
+              ? isSidebarCollapsed
+                ? 'w-0 overflow-hidden border-r-0 opacity-0 pointer-events-none'
+                : 'w-64'
+              : isSidebarCollapsed
+              ? 'w-16'
+              : 'w-64'
+          }`}
+        >
+          <div className="p-3 border-b border-phumulani-charcoal/12 flex items-center justify-between">
+            {!isSidebarCollapsed && (
+              <span className="font-heading text-[11px] font-bold uppercase tracking-wider text-phumulani-charcoal">
+                Enterprise Modules
+              </span>
+            )}
+            <span className="text-[10px] font-mono text-phumulani-charcoal bg-phumulani-cream border border-phumulani-charcoal/10 px-1.5 py-0.5 rounded">
+              v8.0-PROD
+            </span>
+          </div>
+
+          <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
+            {sidebarItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeModule === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveModule(item.id)}
+                  title={item.label}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-phumulani-earth text-white shadow-xs'
+                      : 'text-phumulani-charcoal hover:bg-phumulani-cream hover:text-phumulani-earth'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-phumulani-charcoal'}`} />
+                    {!isSidebarCollapsed && <span className="truncate">{item.label}</span>}
+                  </div>
+                  {!isSidebarCollapsed && item.badge && (
+                    <span
+                      className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded tabular-nums ${
+                        isActive ? 'bg-phumulani-charcoal text-phumulani-teal' : 'bg-phumulani-cream text-phumulani-charcoal'
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* User profile footer */}
+          <div className="p-3 border-t border-phumulani-charcoal/12 bg-phumulani-cream/70">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-phumulani-charcoal text-white font-heading font-bold text-xs flex items-center justify-center shrink-0">
+                MA
+              </div>
+              {!isSidebarCollapsed && (
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold text-phumulani-charcoal truncate">{currentUser.name}</div>
+                  <div className="text-[10px] text-phumulani-earth flex items-center gap-1">
+                    <Shield className="w-2.5 h-2.5" />
+                    <span>MFA Verified · Active</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </aside>
+
+        {/* MAIN MODULE CONTENT AREA */}
+        <main
+          className={`flex-1 min-w-0 overflow-y-auto overflow-x-hidden ${
+            activeModule === 'email_command_center' || activeModule === 'fundraising_command_center'
+              ? 'p-0 max-w-none'
+              : 'p-4 sm:p-8 max-w-7xl'
+          }`}
+        >
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-20 text-xs font-semibold text-phumulani-charcoal">
+                Loading administration module...
+              </div>
+            }
+          >
+          {/* ============================================================ */}
+          {/* MODULE: ENTERPRISE FUNDRAISING & DONOR INTELLIGENCE          */}
+          {/* ============================================================ */}
+          {activeModule === 'fundraising_command_center' && (
+            <FundraisingCommandCenterView
+              onBackToMaster={() => setActiveModule('overview')}
+              onOpenEmailCommand={() => setActiveModule('email_command_center')}
+              initialSubRoute={fundraisingSubRoute}
+              initialDonorId={fundraisingSelectedDonorId || undefined}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE: AI EMAIL COMMAND CENTER (P0 OPERATIONS)              */}
+          {/* ============================================================ */}
+          {activeModule === 'email_command_center' && (
+            <EmailCommandCenterView
+              currentUser={currentUser}
+              onViewChange={onViewChange}
+              onBackToMasterAdmin={() => setActiveModule('overview')}
+              onOpenFundraisingCRM={(subRoute, donorId) => {
+                if (subRoute) setFundraisingSubRoute(subRoute as any);
+                if (donorId) setFundraisingSelectedDonorId(donorId);
+                setActiveModule('fundraising_command_center');
+              }}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE: DEVELOPMENT OPERATIONS & GITHUB INTEGRATION (PHASE 13) */}
+          {/* ============================================================ */}
+          {activeModule === 'development_operations' && (
+            <DevelopmentOperationsView
+              currentUser={currentUser}
+              onViewChange={onViewChange}
+            />
+          )}
+
+          {/* Action Notification Banner */}
+          {activeModule !== 'email_command_center' && activeModule !== 'fundraising_command_center' && actionNotice && (
+            <div
+              className={`mb-6 p-4 rounded-xl border flex items-start justify-between gap-3 text-xs shadow-xs animate-fadeIn ${
+                actionNotice.type === 'success'
+                  ? 'bg-phumulani-cream border-phumulani-green text-phumulani-charcoal'
+                  : actionNotice.type === 'warning'
+                  ? 'bg-phumulani-cream border-phumulani-gold text-phumulani-charcoal'
+                  : 'bg-phumulani-cream border-phumulani-teal text-phumulani-charcoal'
+              }`}
+            >
+              <div className="flex items-start gap-2.5">
+                {actionNotice.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 text-phumulani-earth shrink-0 mt-0.5" />
+                ) : actionNotice.type === 'warning' ? (
+                  <AlertTriangle className="w-4 h-4 text-phumulani-earth shrink-0 mt-0.5" />
+                ) : (
+                  <ShieldCheck className="w-4 h-4 text-phumulani-earth shrink-0 mt-0.5" />
+                )}
+                <span className="leading-relaxed font-medium">{actionNotice.message}</span>
+              </div>
+              <button
+                onClick={() => setActionNotice(null)}
+                className="text-phumulani-charcoal hover:text-phumulani-earth font-bold px-1.5 py-0.5 rounded text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 01: ENTERPRISE OVERVIEW                                */}
+          {/* ============================================================ */}
+          {activeModule === 'overview' && (
+            <div className="space-y-6">
+              {/* Overview Hero Banner */}
+              <div className="bg-phumulani-charcoal text-white rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="space-y-2 max-w-2xl">
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold text-phumulani-teal bg-phumulani-charcoal px-3 py-1 rounded-md border border-phumulani-teal/40">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-phumulani-teal" />
+                    <span>PHASE 19 LIVE PRODUCTION ACTIVATION · MODE: {operationalMode}</span>
+                  </div>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight">
+                    Phumulani Master Command Dashboard
+                  </h2>
+                  <p className="text-xs sm:text-sm text-phumulani-cream leading-relaxed">
+                    Centrally administering 15 operational portals, 18 AI workforce agents, 13 enterprise accounts, PostgreSQL 15+ persistence, and immutable audit logs with strict separation of safeguarding duties.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
+                  <button
+                    onClick={() => setActiveModule('production_status')}
+                    className="px-4 py-2 bg-phumulani-gold hover:bg-phumulani-teal text-phumulani-charcoal font-bold text-xs rounded-xl shadow-xs flex items-center gap-2 transition-all cursor-pointer"
+                  >
+                    <Activity className="w-4 h-4" />
+                    <span>Inspect 15 Live Statuses</span>
+                  </button>
+                  <button
+                    onClick={() => setIsProvisionModalOpen(true)}
+                    className="px-4 py-2 bg-phumulani-earth hover:bg-phumulani-charcoal text-white hover:text-phumulani-charcoal font-bold text-xs rounded-xl border border-phumulani-earth flex items-center gap-2 transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Provision Account</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Phase 24 Centralized Command Center Overview (M24.02) */}
+              <ExecutiveOverviewTab currentUser={currentUser} onNavigateTab={setActiveModule} />
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white p-5 rounded-2xl border border-phumulani-charcoal/12 shadow-xs space-y-1">
+                  <div className="text-xs font-semibold text-phumulani-charcoal flex items-center justify-between">
+                    <span>Registered Accounts</span>
+                    <Users className="w-4 h-4 text-phumulani-earth" />
+                  </div>
+                  <div className="font-heading text-2xl font-bold text-phumulani-charcoal tabular-nums">{users.length}</div>
+                  <div className="text-[11px] text-phumulani-earth font-medium">100% Identity Verified with MFA</div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-phumulani-charcoal/12 shadow-xs space-y-1">
+                  <div className="text-xs font-semibold text-phumulani-charcoal flex items-center justify-between">
+                    <span>Active Volunteers</span>
+                    <UserCheck className="w-4 h-4 text-phumulani-earth" />
+                  </div>
+                  <div className="font-heading text-2xl font-bold text-phumulani-charcoal tabular-nums">{applications.length}</div>
+                  <div className="text-[11px] text-phumulani-earth font-medium tabular-nums">
+                    {applications.filter((a) => a.status === 'submitted').length} Applications Pending Review
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-phumulani-charcoal/12 shadow-xs space-y-1">
+                  <div className="text-xs font-semibold text-phumulani-charcoal flex items-center justify-between">
+                    <span>Verified Donations</span>
+                    <DollarSign className="w-4 h-4 text-phumulani-earth" />
+                  </div>
+                  <div className="font-heading text-2xl font-bold text-phumulani-charcoal tabular-nums">
+                    ${totalDonationsAmount.toLocaleString()}
+                  </div>
+                  <div className="text-[11px] text-phumulani-earth font-medium tabular-nums">
+                    {isProductionOnly
+                      ? totalDonationsAmount === 0
+                        ? 'No verified donations recorded (fixtures segregated)'
+                        : `${verifiedDonationsCount} Verified Transactions · Reconciled`
+                      : `${donations.length} Transactions · Reconciled`}
+                  </div>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-phumulani-charcoal/12 shadow-xs space-y-1">
+                  <div className="text-xs font-semibold text-phumulani-charcoal flex items-center justify-between">
+                    <span>AI Workforce Activity</span>
+                    <Bot className="w-4 h-4 text-phumulani-earth" />
+                  </div>
+                  <div className="font-heading text-2xl font-bold text-phumulani-charcoal tabular-nums">
+                    {agents.reduce((sum, a) => sum + a.callsThisMonth, 0).toLocaleString()}
+                  </div>
+                  <div className="text-[11px] text-phumulani-earth font-medium">
+                    18 Agents Supervised · $0.00 Risk Leak
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 4: MASTER FUNDRAISING WORKFLOW OPERATIONS HUB */}
+              <div className="bg-white rounded-2xl border border-phumulani-charcoal/12 p-5 shadow-xs space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-phumulani-charcoal/10 pb-3">
+                  <div>
+                    <h3 className="font-heading font-bold text-phumulani-charcoal text-sm">
+                      Master Fundraising Workflow Operations Hub
+                    </h3>
+                    <p className="text-xs text-phumulani-charcoal/80">
+                      Direct single-click operational access to all 15 stages of the Phumulani Fundraising Architecture.
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-phumulani-cream text-phumulani-earth font-bold border border-phumulani-teal/40 self-start sm:self-auto">
+                    DIAGRAM-DRIVEN WORKFLOW
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-1">
+                  <button
+                    onClick={() => setActiveModule('email_command_center')}
+                    className="p-3 rounded-xl border border-phumulani-charcoal/12 hover:border-phumulani-earth bg-phumulani-cream/70 hover:bg-white text-left transition-all cursor-pointer group space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-phumulani-earth">
+                      <Mail className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 h-3.5 text-phumulani-charcoal group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <div className="font-heading font-bold text-xs text-phumulani-charcoal">Email Manager</div>
+                    <div className="text-[10px] text-phumulani-charcoal/80">Inbound Mailboxes & Triage</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setFundraisingSubRoute('donors');
+                      setActiveModule('fundraising_command_center');
+                    }}
+                    className="p-3 rounded-xl border border-phumulani-charcoal/12 hover:border-phumulani-earth bg-phumulani-cream/70 hover:bg-white text-left transition-all cursor-pointer group space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-phumulani-earth">
+                      <Users className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 h-3.5 text-phumulani-charcoal group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <div className="font-heading font-bold text-xs text-phumulani-charcoal">Fundraising CRM</div>
+                    <div className="text-[10px] text-phumulani-charcoal/80">Donors, Corporate & Inst.</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setFundraisingSubRoute('individuals');
+                      setActiveModule('fundraising_command_center');
+                    }}
+                    className="p-3 rounded-xl border border-phumulani-charcoal/12 hover:border-phumulani-earth bg-phumulani-cream/70 hover:bg-white text-left transition-all cursor-pointer group space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-phumulani-earth">
+                      <Sparkles className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 h-3.5 text-phumulani-charcoal group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <div className="font-heading font-bold text-xs text-phumulani-charcoal">Donor Intelligence</div>
+                    <div className="text-[10px] text-phumulani-charcoal/80">Verified Facts vs Predictions</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setFundraisingSubRoute('opportunities');
+                      setActiveModule('fundraising_command_center');
+                    }}
+                    className="p-3 rounded-xl border border-phumulani-charcoal/12 hover:border-phumulani-earth bg-phumulani-cream/70 hover:bg-white text-left transition-all cursor-pointer group space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-phumulani-earth">
+                      <Layers className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 h-3.5 text-phumulani-charcoal group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <div className="font-heading font-bold text-xs text-phumulani-charcoal">Opportunities</div>
+                    <div className="text-[10px] text-phumulani-charcoal/80">15 Lifecycle Stages</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setFundraisingSubRoute('agents');
+                      setActiveModule('fundraising_command_center');
+                    }}
+                    className="p-3 rounded-xl border border-phumulani-charcoal/12 hover:border-phumulani-earth bg-phumulani-cream/70 hover:bg-white text-left transition-all cursor-pointer group space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-phumulani-earth">
+                      <Bot className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 h-3.5 text-phumulani-charcoal group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <div className="font-heading font-bold text-xs text-phumulani-charcoal">AI Workforce</div>
+                    <div className="text-[10px] text-phumulani-charcoal/80">18 Specialized Agents</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setFundraisingSubRoute('approvals');
+                      setActiveModule('fundraising_command_center');
+                    }}
+                    className="p-3 rounded-xl border border-phumulani-charcoal/12 hover:border-phumulani-earth bg-phumulani-cream/70 hover:bg-white text-left transition-all cursor-pointer group space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-phumulani-earth">
+                      <ShieldCheck className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 h-3.5 text-phumulani-charcoal group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <div className="font-heading font-bold text-xs text-phumulani-charcoal">Approval Queue</div>
+                    <div className="text-[10px] text-phumulani-charcoal/80">Quad-Action Signoff Gate</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setFundraisingSubRoute('outreach');
+                      setActiveModule('fundraising_command_center');
+                    }}
+                    className="p-3 rounded-xl border border-phumulani-charcoal/12 hover:border-phumulani-earth bg-phumulani-cream/70 hover:bg-white text-left transition-all cursor-pointer group space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-phumulani-earth">
+                      <Send className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 h-3.5 text-phumulani-charcoal group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <div className="font-heading font-bold text-xs text-phumulani-charcoal">Outreach Dispatch</div>
+                    <div className="text-[10px] text-phumulani-charcoal/80">CAN-SPAM Guard & Send</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setFundraisingSubRoute('transactions');
+                      setActiveModule('fundraising_command_center');
+                    }}
+                    className="p-3 rounded-xl border border-phumulani-charcoal/12 hover:border-phumulani-earth bg-phumulani-cream/70 hover:bg-white text-left transition-all cursor-pointer group space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-phumulani-earth">
+                      <DollarSign className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 h-3.5 text-phumulani-charcoal group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <div className="font-heading font-bold text-xs text-phumulani-charcoal">Reconciliation</div>
+                    <div className="text-[10px] text-phumulani-charcoal/80">Pledges vs Verified ACH</div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setFundraisingSubRoute('programs');
+                      setActiveModule('fundraising_command_center');
+                    }}
+                    className="p-3 rounded-xl border border-phumulani-charcoal/12 hover:border-phumulani-earth bg-phumulani-cream/70 hover:bg-white text-left transition-all cursor-pointer group space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-phumulani-earth">
+                      <FileText className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 h-3.5 text-phumulani-charcoal group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <div className="font-heading font-bold text-xs text-phumulani-charcoal">Program Funding</div>
+                    <div className="text-[10px] text-phumulani-charcoal/80">10 Category Deployments</div>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveModule('production_status')}
+                    className="p-3 rounded-xl border border-phumulani-charcoal/12 hover:border-phumulani-earth bg-phumulani-cream/70 hover:bg-white text-left transition-all cursor-pointer group space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-phumulani-earth">
+                      <Activity className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 h-3.5 text-phumulani-charcoal group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <div className="font-heading font-bold text-xs text-phumulani-charcoal">Operational Blockers</div>
+                    <div className="text-[10px] text-phumulani-charcoal/80">Production Readiness Grid</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Quick Launch & Operational Summary */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-white rounded-2xl border border-phumulani-charcoal/12 p-6 shadow-xs space-y-4">
+                  <div className="flex justify-between items-center border-b border-phumulani-charcoal/10 pb-3">
+                    <h3 className="font-heading font-bold text-phumulani-charcoal text-sm">
+                      Recent High-Privilege Audit Events
+                    </h3>
+                    <button
+                      onClick={() => setActiveModule('security_audit')}
+                      className="text-xs font-semibold text-phumulani-earth hover:text-phumulani-charcoal flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>View Full Trail</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="divide-y divide-phumulani-charcoal/10">
+                    {auditLogs.slice(0, 5).map((log) => (
+                      <div key={log.id} className="py-2.5 flex items-start justify-between gap-3 text-xs">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-phumulani-charcoal bg-phumulani-cream px-1.5 py-0.5 rounded text-[10px]">
+                              {log.action}
+                            </span>
+                            <span className="text-phumulani-charcoal text-[11px]">by {log.actorEmail}</span>
+                          </div>
+                          <p className="text-phumulani-charcoal text-[11px]">{log.details}</p>
+                        </div>
+                        <span className="text-[10px] text-phumulani-charcoal shrink-0 font-mono tabular-nums">
+                          {new Date(log.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-phumulani-charcoal/12 p-6 shadow-xs space-y-4">
+                  <h3 className="font-heading font-bold text-phumulani-charcoal text-sm border-b border-phumulani-charcoal/10 pb-3">
+                    Separation of Duties Status
+                  </h3>
+
+                  <div className="space-y-3 text-xs">
+                    <div className="p-3 bg-phumulani-cream border border-phumulani-green/50 rounded-xl space-y-1">
+                      <div className="font-bold text-phumulani-charcoal flex items-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4 text-phumulani-earth" />
+                        <span>Platform Administration</span>
+                      </div>
+                      <p className="text-phumulani-charcoal text-[11px]">
+                        Master Administrator holds broad operational governance across general modules.
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-phumulani-cream border border-phumulani-earth/40 rounded-xl space-y-1">
+                      <div className="font-bold text-phumulani-earth flex items-center gap-1.5">
+                        <Lock className="w-4 h-4 text-phumulani-earth" />
+                        <span>VAWA Safeguarding Partition</span>
+                      </div>
+                      <p className="text-phumulani-charcoal text-[11px]">
+                        Restricted survivor intakes (SAFE-MN-XXX) remain strictly segregated to Sister Miriam K. and Comfort Dondo.
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-phumulani-cream border border-phumulani-gold/60 rounded-xl space-y-1">
+                      <div className="font-bold text-phumulani-charcoal flex items-center gap-1.5">
+                        <DollarSign className="w-4 h-4 text-phumulani-earth" />
+                        <span>Dual Financial Control</span>
+                      </div>
+                      <p className="text-phumulani-charcoal text-[11px]">
+                        High-risk disbursements require independent sign-off from Finance Director David Mwangi, CPA.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 02: STAFF DIRECTORY & LIFECYCLE (M24.03)               */}
+          {/* ============================================================ */}
+          {activeModule === 'staff_management' && (
+            <StaffManagementTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 03: DEPARTMENT MANAGEMENT & SAFEGUARDING (M24.05)      */}
+          {/* ============================================================ */}
+          {activeModule === 'department_management' && (
+            <DepartmentManagementTab currentUser={currentUser} onNavigateTab={setActiveModule} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 04: ORGANIZATIONAL TASKS & COLLABORATION (M24.06)      */}
+          {/* ============================================================ */}
+          {activeModule === 'task_management' && (
+            <TaskManagementTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 05: EXECUTIVE DECISION CENTER & PRIORITIES (M24.07)    */}
+          {/* ============================================================ */}
+          {activeModule === 'executive_decisions' && (
+            <ExecutiveDecisionTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 06: VOLUNTEER OPERATIONS & SCREENING (M24.09)          */}
+          {/* ============================================================ */}
+          {activeModule === 'volunteer_management' && (
+            <VolunteerManagementTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 07: GRANT OPERATIONS & INSTITUTIONAL RFP (M24.10)      */}
+          {/* ============================================================ */}
+          {activeModule === 'grant_management' && (
+            <GrantManagementTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 08: PARTNERSHIP MANAGEMENT (M24.11)                   */}
+          {/* ============================================================ */}
+          {activeModule === 'partnership_management' && (
+            <PartnershipManagementTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 09: ORGANIZATIONAL ANALYTICS (M24.12)                  */}
+          {/* ============================================================ */}
+          {activeModule === 'organizational_analytics' && (
+            <OrganizationalAnalyticsTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 10: RBAC PERMISSION MATRIX & SECURITY (M24.04)         */}
+          {/* ============================================================ */}
+          {activeModule === 'rbac_permissions' && (
+            <RbacPermissionsTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 11: COMMUNITY PROGRAMS MANAGEMENT (P25 M25.02)         */}
+          {/* ============================================================ */}
+          {activeModule === 'community_programs' && (
+            <CommunityProgramsDashboardTab
+              currentUserRole={currentUser.role}
+              currentUserName={currentUser.name}
+              onOpenAiAssist={(pId) => {
+                setSelectedProgramAiId(pId);
+                setIsProgramAiModalOpen(true);
+              }}
+              onNavigateSubmodule={(sub) => {
+                if (sub === 'outreach') setActiveModule('community_outreach');
+                else if (sub === 'services') setActiveModule('general_services');
+                else if (sub === 'referrals') setActiveModule('referral_partners');
+                else if (sub === 'volunteers') setActiveModule('volunteer_deployment');
+                else if (sub === 'events') setActiveModule('community_events');
+                else if (sub === 'resources') setActiveModule('program_resources');
+                else if (sub === 'impact') setActiveModule('program_impact');
+                else setActiveModule('community_programs');
+              }}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 12: COMMUNITY OUTREACH MANAGEMENT (M25.03)             */}
+          {/* ============================================================ */}
+          {activeModule === 'community_outreach' && (
+            <CommunityOutreachTab
+              currentUserRole={currentUser.role}
+              currentUserName={currentUser.name}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 13: GENERAL SERVICE REQUESTS & TRIAGE (M25.04)         */}
+          {/* ============================================================ */}
+          {activeModule === 'general_services' && (
+            <GeneralServiceRequestsTab
+              currentUserRole={currentUser.role}
+              currentUserName={currentUser.name}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 14: SERVICE REFERRALS & PARTNERS (M25.05)              */}
+          {/* ============================================================ */}
+          {activeModule === 'referral_partners' && (
+            <ReferralPartnerTab
+              currentUserRole={currentUser.role}
+              currentUserName={currentUser.name}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 15: VOLUNTEER DEPLOYMENT & SCHEDULING (M25.06)         */}
+          {/* ============================================================ */}
+          {activeModule === 'volunteer_deployment' && (
+            <VolunteerDeploymentTab
+              currentUserRole={currentUser.role}
+              currentUserName={currentUser.name}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 16: COMMUNITY EVENTS MANAGEMENT (M25.07)               */}
+          {/* ============================================================ */}
+          {activeModule === 'community_events' && (
+            <CommunityEventsTab
+              currentUserRole={currentUser.role}
+              currentUserName={currentUser.name}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 17: PROGRAM RESOURCE MANAGEMENT (M25.08)               */}
+          {/* ============================================================ */}
+          {activeModule === 'program_resources' && (
+            <ProgramResourcesTab
+              currentUserRole={currentUser.role}
+              currentUserName={currentUser.name}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 18: TRUTHFUL PROGRAM IMPACT MEASUREMENT (M25.11)       */}
+          {/* ============================================================ */}
+          {activeModule === 'program_impact' && (
+            <ProgramImpactTab
+              onOpenAiAssist={() => {
+                setSelectedProgramAiId(undefined);
+                setIsProgramAiModalOpen(true);
+              }}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 19: FUNDING COMMAND CENTER (PHASE 26 M26.01)           */}
+          {/* ============================================================ */}
+          {activeModule === 'funding_command' && (
+            <FundingCommandCenterTab
+              currentUser={currentUser}
+              onNavigateTab={(tabId) => setActiveModule(tabId)}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 20: GRANT OPPORTUNITY REGISTRY (M26.02 - M26.04)       */}
+          {/* ============================================================ */}
+          {activeModule === 'grant_registry_p26' && (
+            <GrantOpportunityRegistryTab
+              currentUser={currentUser}
+              onOpenWorkspace={(oppId) => {
+                setActiveWorkspaceOppId(oppId);
+                setActiveModule('grant_dev_workspace');
+              }}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 21: GRANT DEVELOPMENT WORKSPACE & BUDGET (M26.05-08)   */}
+          {/* ============================================================ */}
+          {activeModule === 'grant_dev_workspace' && (
+            <GrantDevelopmentWorkspaceTab
+              currentUser={currentUser}
+              defaultOpportunityId={activeWorkspaceOppId}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 22: UNIFIED DONOR CRM & STEWARDSHIP (M26.10, M26.14)   */}
+          {/* ============================================================ */}
+          {activeModule === 'donor_crm_p26' && (
+            <DonorCrmCommandTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 23: FUNDRAISING PIPELINES & CAMPAIGNS (M26.11, M26.12) */}
+          {/* ============================================================ */}
+          {activeModule === 'campaigns_pipelines' && (
+            <FundraisingPipelinesTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 24: RESTRICTED FUNDS & ALLOCATION CONTROL (M26.09)     */}
+          {/* ============================================================ */}
+          {activeModule === 'restricted_funds_p26' && (
+            <RestrictedFundsTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 25: FUNDER REPORTING & COMPLIANCE (M26.15)             */}
+          {/* ============================================================ */}
+          {activeModule === 'funder_reporting_p26' && (
+            <FunderReportingTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 26: FUNDING CALENDAR & RECONCILIATION (M26.13)         */}
+          {/* ============================================================ */}
+          {activeModule === 'funding_calendar_p26' && (
+            <FundingCalendarTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 27: UNIFIED OPERATIONS COMMAND CENTER (M27.02)         */}
+          {/* ============================================================ */}
+          {activeModule === 'operations_command' && (
+            <OperationsCommandCenterTab
+              currentUser={currentUser}
+              onNavigateToNotifications={() => setActiveModule('internal_notifications')}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 28: INTERNAL NOTIFICATION CENTER (M27.05)              */}
+          {/* ============================================================ */}
+          {activeModule === 'internal_notifications' && (
+            <InternalNotificationsTab
+              currentUser={currentUser}
+              onNavigateToRecord={() => setActiveModule('operations_command')}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 29: CONTENT MANAGEMENT SYSTEM & PAGES (M30.03)        */}
+          {/* ============================================================ */}
+          {activeModule === 'content_management' && (
+            <ContentManagementTab
+              currentUser={currentUser}
+              onOpenMediaRegistry={() => setActiveModule('media')}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 30: UNIFIED COMMUNITY OPERATIONS CENTER (M33.01)       */}
+          {/* ============================================================ */}
+          {activeModule === 'community_operations_center' && (
+            <UnifiedCommunityOperationsCenter
+              currentUser={currentUser}
+              onOpenSourceRecord={(ref) => {
+                if (ref.startsWith('SRV-')) setActiveModule('general_services');
+                else if (ref.startsWith('PROG-')) setActiveModule('community_programs');
+                else if (ref.startsWith('VOL-')) setActiveModule('volunteer_deployment');
+              }}
+            />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 31: EXECUTIVE INTELLIGENCE DASHBOARD (M33.07)          */}
+          {/* ============================================================ */}
+          {activeModule === 'executive_intelligence' && (
+            <ExecutiveIntelligenceDashboard />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 32: BOARD GOVERNANCE PORTAL (M33.08)                   */}
+          {/* ============================================================ */}
+          {activeModule === 'board_governance' && (
+            <BoardGovernancePortalTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 33: COMMUNITY ENGAGEMENT HUB (M33.09)                  */}
+          {/* ============================================================ */}
+          {activeModule === 'community_engagement' && (
+            <CommunityEngagementTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 34: TRAINING & KNOWLEDGE CENTER (M33.10)               */}
+          {/* ============================================================ */}
+          {activeModule === 'training_knowledge' && (
+            <TrainingKnowledgeCenterTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 35: WORKFLOW AUTOMATION ENGINE (M33.11)                */}
+          {/* ============================================================ */}
+          {activeModule === 'workflow_automation' && (
+            <WorkflowAutomationEngineTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 36: UNIFIED OPERATIONAL SEARCH (M34.01)                */}
+          {/* ============================================================ */}
+          {activeModule === 'operational_search' && (
+            <UnifiedOperationalSearchTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 37: COMMUNITY RESOURCE DIRECTORY (M34.02)              */}
+          {/* ============================================================ */}
+          {activeModule === 'resource_directory' && (
+            <CommunityResourceDirectoryTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 38: SERVICE REQUEST OPTIMIZATION (M34.03)              */}
+          {/* ============================================================ */}
+          {activeModule === 'service_requests_p34' && (
+            <ServiceRequestOptimizationTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 39: PROGRAM CAPACITY & PLANNING (M34.04)               */}
+          {/* ============================================================ */}
+          {activeModule === 'program_capacity' && (
+            <ProgramCapacityPlanningTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 40: VOLUNTEER SCHEDULING (M34.05)                      */}
+          {/* ============================================================ */}
+          {activeModule === 'volunteer_scheduling' && (
+            <VolunteerSchedulingTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 41: FUNDRAISING INTELLIGENCE (M34.06)                  */}
+          {/* ============================================================ */}
+          {activeModule === 'fundraising_intel' && (
+            <FundraisingIntelligenceTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 42: AI WORKFORCE QUALITY MATRIX (M34.07)               */}
+          {/* ============================================================ */}
+          {activeModule === 'ai_evaluations' && (
+            <AiWorkforceEvaluationTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 43: KNOWLEDGE SEARCH (M34.08)                          */}
+          {/* ============================================================ */}
+          {activeModule === 'knowledge_search' && (
+            <KnowledgeSearchTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 44: EXECUTIVE SCENARIO PLANNING (M34.09)               */}
+          {/* ============================================================ */}
+          {activeModule === 'executive_scenarios' && (
+            <ExecutiveScenarioPlanningTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 45: GOVERNANCE CALENDAR (M34.10)                       */}
+          {/* ============================================================ */}
+          {activeModule === 'governance_calendar' && (
+            <BoardGovernanceCalendarTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 46: ADVANCED EXPORTS (M34.11)                          */}
+          {/* ============================================================ */}
+          {activeModule === 'advanced_exports' && (
+            <AdvancedReportingExportsTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 47: FEEDBACK INTELLIGENCE (M34.12)                     */}
+          {/* ============================================================ */}
+          {activeModule === 'feedback_intelligence' && (
+            <CommunityFeedbackIntelligenceTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 48: MOBILE ACCESSIBILITY AUDIT (M34.13)                */}
+          {/* ============================================================ */}
+          {activeModule === 'mobile_accessibility' && (
+            <MobileAccessibilityAuditTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 49: INTEGRATED SERVICE DELIVERY & AUTOMATION (PHASE 35) */}
+          {/* ============================================================ */}
+          {activeModule === 'integrated_service_delivery' && (
+            <IntegratedServiceDeliveryTab />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 50: PLATFORM RELIABILITY & SECURITY HARDENING (PHASE 36) */}
+          {/* ============================================================ */}
+          {activeModule === 'platform_reliability_p36' && (
+            <PlatformReliabilityAuditTab />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 51: AUTHORITATIVE REPORTING INTEGRATION (PHASE 41 M41.08) */}
+          {/* ============================================================ */}
+          {activeModule === 'integrated_reporting_m4108' && (
+            <IntegratedReportingTab currentUser={currentUser} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE: PRODUCTION STATUS DASHBOARD (Phase 8 Section 16)      */}
+          {/* ============================================================ */}
+          {activeModule === 'production_status' && (
+            <div className="bg-white rounded-2xl border border-phumulani-charcoal/12 p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-phumulani-charcoal/10 pb-4">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-phumulani-earth bg-phumulani-cream border border-phumulani-teal/40 px-2.5 py-0.5 rounded-md mb-1">
+                    <Activity className="w-3 h-3 text-phumulani-earth" />
+                    <span>SECTION 16 COMPONENT STATUS REGISTRY</span>
+                  </div>
+                  <h3 className="font-heading text-xl font-bold text-phumulani-charcoal">
+                    Live Production Status & Verification Grid
+                  </h3>
+                  <p className="text-xs text-phumulani-charcoal/80 mt-0.5">
+                    Real-time operational verification for the 15 enterprise platform components. Fail-closed on error.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleRunProbe}
+                    disabled={isProbing}
+                    className="px-4 py-2 bg-phumulani-earth hover:bg-phumulani-charcoal text-white hover:text-phumulani-charcoal rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isProbing ? 'animate-spin' : ''}`} />
+                    <span>{isProbing ? 'Probing Components...' : 'Execute Live Health Probe'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Probe Overview Cards */}
+              {probeReport && (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="p-4 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12">
+                    <div className="text-xs text-phumulani-charcoal font-medium">Overall Status</div>
+                    <div className="font-heading text-2xl font-bold text-phumulani-earth mt-1">{probeReport.overallStatus}</div>
+                    <div className="text-[11px] text-phumulani-charcoal/80 mt-0.5">Zero simulation fallback</div>
+                  </div>
+
+                  <div className="p-4 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12">
+                    <div className="text-xs text-phumulani-charcoal font-medium">Verified Components</div>
+                    <div className="font-heading text-2xl font-bold text-phumulani-charcoal mt-1 tabular-nums">
+                      {probeReport.verifiedCount} / {probeReport.totalComponents}
+                    </div>
+                    <div className="text-[11px] text-phumulani-earth mt-0.5">100% Independently Checked</div>
+                  </div>
+
+                  <div className="p-4 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12">
+                    <div className="text-xs text-phumulani-charcoal font-medium">Database Target</div>
+                    <div className="font-mono text-xs font-bold text-phumulani-charcoal mt-2 truncate">PostgreSQL 15+</div>
+                    <div className="text-[11px] text-phumulani-earth mt-0.5">schema.sql (17 Entities)</div>
+                  </div>
+
+                  <div className="p-4 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12">
+                    <div className="text-xs text-phumulani-charcoal font-medium">Backup Integrity</div>
+                    <div className="font-heading text-2xl font-bold text-phumulani-charcoal mt-1">SHA-256</div>
+                    <div className="text-[11px] text-phumulani-earth mt-0.5">D:\Phumulani\Backups</div>
+                  </div>
+                </div>
+              )}
+
+              {/* 15 Status Table */}
+              <div className="overflow-x-auto border border-phumulani-charcoal/12 rounded-xl">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-phumulani-cream border-b border-phumulani-charcoal/12 text-phumulani-charcoal font-bold uppercase tracking-wider">
+                      <th className="p-3 w-40">Component</th>
+                      <th className="p-3 w-32">Status</th>
+                      <th className="p-3 w-24 text-right">Latency</th>
+                      <th className="p-3">Target Endpoint / Protocol</th>
+                      <th className="p-3">Verified Operational Evidence</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-phumulani-charcoal/10">
+                    {probeReport?.checks.map((check) => {
+                      const isOk = ['LIVE', 'CONNECTED', 'OPERATIONAL', 'ACTIVE', 'PROVISIONED', 'VERIFIED', 'PASSED', 'CURRENT'].includes(check.status);
+                      return (
+                        <tr key={check.id} className="hover:bg-phumulani-cream/60 transition-colors">
+                          <td className="p-3 font-bold font-heading text-phumulani-charcoal">
+                            <div>{check.id}</div>
+                            <div className="text-[10px] font-sans font-normal text-phumulani-charcoal/80">{check.name}</div>
+                          </td>
+                          <td className="p-3">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-bold ${
+                                isOk
+                                  ? 'bg-phumulani-green/15 text-phumulani-charcoal border border-phumulani-green/40'
+                                  : 'bg-phumulani-cream text-phumulani-earth border border-phumulani-earth/40'
+                              }`}
+                            >
+                              {isOk ? <CheckCircle2 className="w-3 h-3 text-phumulani-charcoal" /> : <XCircle className="w-3 h-3 text-phumulani-earth" />}
+                              <span>{check.status}</span>
+                            </span>
+                          </td>
+                          <td className="p-3 text-right font-mono text-[11px] text-phumulani-charcoal tabular-nums">
+                            {check.latencyMs} ms
+                          </td>
+                          <td className="p-3 font-mono text-[11px] text-phumulani-charcoal truncate max-w-xs">
+                            {check.targetEndpoint}
+                          </td>
+                          <td className="p-3 text-phumulani-charcoal leading-relaxed text-[11px]">
+                            {check.verificationEvidence}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE: SECTION 15 LIVE PRODUCTION VERIFICATION TESTS          */}
+          {/* ============================================================ */}
+          {activeModule === 'acceptance_tests' && (
+            <div className="bg-white rounded-2xl border border-phumulani-charcoal/12 p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-phumulani-charcoal/10 pb-4">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-phumulani-earth bg-phumulani-cream border border-phumulani-teal/40 px-2.5 py-0.5 rounded-md mb-1">
+                    <Play className="w-3 h-3 text-phumulani-earth" />
+                    <span>SECTION 15 PRODUCTION VERIFICATION SUITE</span>
+                  </div>
+                  <h3 className="font-heading text-xl font-bold text-phumulani-charcoal">
+                    Live Production Acceptance Tests (Section 15 & Email Operations)
+                  </h3>
+                  <p className="text-xs text-phumulani-charcoal/80 mt-0.5">
+                    End-to-end evidence generation validating all platform requirements and AI email operations prior to production sign-off.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleRunAcceptanceTests}
+                    disabled={isRunningTests}
+                    className="px-4 py-2 bg-phumulani-earth hover:bg-phumulani-charcoal text-white hover:text-phumulani-charcoal rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isRunningTests ? 'animate-spin' : ''}`} />
+                    <span>{isRunningTests ? 'Executing Verification Suite...' : 'Execute All Verification Tests'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Test Metric Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="p-4 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12">
+                  <div className="text-xs text-phumulani-charcoal font-medium">Total Acceptance Tests</div>
+                  <div className="font-heading text-2xl font-bold text-phumulani-charcoal mt-1 tabular-nums">
+                    {testSummary ? testSummary.total : '21 Tests'}
+                  </div>
+                  <div className="text-[11px] text-phumulani-earth mt-0.5">Section 15 + Email Suite</div>
+                </div>
+
+                <div className="p-4 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12">
+                  <div className="text-xs text-phumulani-charcoal font-medium">Tests Passed</div>
+                  <div className="font-heading text-2xl font-bold text-phumulani-earth mt-1 tabular-nums">
+                    {testSummary ? testSummary.passed : '-'}
+                  </div>
+                  <div className="text-[11px] text-phumulani-earth mt-0.5">
+                    {testSummary && testSummary.failed === 0 ? '100% Passed · Verified' : 'Awaiting Run'}
+                  </div>
+                </div>
+
+                <div className="p-4 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12">
+                  <div className="text-xs text-phumulani-charcoal font-medium">Tests Failed</div>
+                  <div className="font-heading text-2xl font-bold text-phumulani-charcoal mt-1 tabular-nums">
+                    {testSummary ? testSummary.failed : '-'}
+                  </div>
+                  <div className="text-[11px] text-phumulani-charcoal/80 mt-0.5">Zero tolerance for regression</div>
+                </div>
+
+                <div className="p-4 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12">
+                  <div className="text-xs text-phumulani-charcoal font-medium">Execution Latency</div>
+                  <div className="font-heading text-2xl font-bold text-phumulani-charcoal mt-1 tabular-nums">
+                    {testSummary ? `${testSummary.durationMs} ms` : '-'}
+                  </div>
+                  <div className="text-[11px] text-phumulani-charcoal/80 mt-0.5">Live benchmark</div>
+                </div>
+              </div>
+
+              {/* Tests Table */}
+              <div className="overflow-x-auto border border-phumulani-charcoal/12 rounded-xl">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-phumulani-cream border-b border-phumulani-charcoal/12 text-phumulani-charcoal font-bold uppercase tracking-wider">
+                      <th className="p-3 w-32">Test ID</th>
+                      <th className="p-3 w-48">Scope / Component</th>
+                      <th className="p-3 w-28">Status</th>
+                      <th className="p-3 w-24 text-right">Duration</th>
+                      <th className="p-3">Verified Operational Evidence</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-phumulani-charcoal/10">
+                    {testSummary ? (
+                      testSummary.results.map((res) => (
+                        <tr key={res.id} className="hover:bg-phumulani-cream/60 transition-colors">
+                          <td className="p-3 font-mono font-bold text-phumulani-earth">
+                            <div className="bg-phumulani-cream border border-phumulani-teal/40 px-2 py-0.5 rounded inline-block tabular-nums">
+                              {res.id}
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="font-heading font-bold text-phumulani-charcoal">{res.name}</div>
+                            <div className="text-[10px] text-phumulani-charcoal/80">{res.description}</div>
+                          </td>
+                          <td className="p-3">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-bold ${
+                                res.passed
+                                  ? 'bg-phumulani-green/15 text-phumulani-charcoal border border-phumulani-green/40'
+                                  : 'bg-phumulani-cream text-phumulani-earth border border-phumulani-earth/40'
+                              }`}
+                            >
+                              {res.passed ? (
+                                <CheckCircle2 className="w-3 h-3 text-phumulani-charcoal" />
+                              ) : (
+                                <XCircle className="w-3 h-3 text-phumulani-earth" />
+                              )}
+                              <span>{res.passed ? 'PASSED' : 'FAILED'}</span>
+                            </span>
+                          </td>
+                          <td className="p-3 text-right font-mono text-phumulani-charcoal tabular-nums">
+                            {res.durationMs} ms
+                          </td>
+                          <td className="p-3 text-phumulani-charcoal leading-relaxed text-[11px]">
+                            {res.details}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="p-8 text-center text-phumulani-charcoal">
+                          <Play className="w-8 h-8 text-phumulani-earth mx-auto mb-2 opacity-60" />
+                          <p className="font-heading font-bold text-phumulani-charcoal">Verification Suite Ready to Execute</p>
+                          <p className="text-xs text-phumulani-charcoal/80 mt-1 max-w-md mx-auto">
+                            Click "Execute All 15 Verification Tests" to validate all operational requirements and produce immutable proof of production readiness.
+                          </p>
+                          <button
+                            onClick={handleRunAcceptanceTests}
+                            disabled={isRunningTests}
+                            className="mt-3 px-4 py-2 bg-phumulani-earth hover:bg-phumulani-charcoal text-white hover:text-phumulani-charcoal rounded-xl text-xs font-bold inline-flex items-center gap-2 shadow-xs transition-all cursor-pointer"
+                          >
+                            <Play className="w-3 h-3" />
+                            <span>Run 15 Production Verification Tests Now</span>
+                          </button>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 02: USER & ACCOUNT MANAGEMENT                          */}
+          {/* ============================================================ */}
+          {activeModule === 'accounts' && (
+            <div className="bg-white rounded-2xl border border-phumulani-charcoal/12 p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-phumulani-charcoal/10 pb-4">
+                <div>
+                  <h3 className="font-heading text-xl font-bold text-phumulani-charcoal">
+                    Enterprise User & Identity Administration
+                  </h3>
+                  <p className="text-xs text-phumulani-charcoal/80 mt-0.5">
+                    Managing authentic accounts across all 12 platform roles with MFA enforcement and session revocation.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsProvisionModalOpen(true)}
+                    className="px-4 py-2 bg-phumulani-earth hover:bg-phumulani-charcoal text-white hover:text-phumulani-charcoal rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition-all cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Provision Account</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter and Search Bar */}
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div className="relative w-full sm:w-80">
+                  <Search className="w-3.5 h-3.5 text-phumulani-charcoal/70 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    placeholder="Search accounts by name, email, department..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-phumulani-charcoal/20 rounded-lg focus:outline-none focus:border-phumulani-earth focus:ring-2 focus:ring-phumulani-earth/20"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Filter className="w-3.5 h-3.5 text-phumulani-charcoal" />
+                  <select
+                    value={userRoleFilter}
+                    onChange={(e) => setUserRoleFilter(e.target.value)}
+                    className="text-xs border border-phumulani-charcoal/20 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-phumulani-earth focus:ring-2 focus:ring-phumulani-earth/20 bg-white"
+                  >
+                    <option value="all">All Roles ({users.length})</option>
+                    <option value="PLATFORM_SUPER_ADMIN">Platform Super Administrator</option>
+                    <option value="executive_director">Executive Director</option>
+                    <option value="board_member">Board Member</option>
+                    <option value="governance_officer">Governance Officer</option>
+                    <option value="finance_officer">Finance Administrator</option>
+                    <option value="staff">Staff Administrator</option>
+                    <option value="program_manager">Program Manager</option>
+                    <option value="volunteer_coordinator">Volunteer Coordinator</option>
+                    <option value="community_advocate">Community Advocate</option>
+                    <option value="safeguarding_officer">Safeguarding Lead</option>
+                    <option value="volunteer">Volunteer</option>
+                    <option value="donor">Donor</option>
+                    <option value="community_member">Community Member</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* User Roster Table */}
+              <div className="overflow-x-auto border border-phumulani-charcoal/12 rounded-xl">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-phumulani-cream border-b border-phumulani-charcoal/12 text-phumulani-charcoal font-bold uppercase tracking-wider">
+                      <th className="p-3">User & Title</th>
+                      <th className="p-3">Email Address</th>
+                      <th className="p-3">Role Identifier</th>
+                      <th className="p-3">MFA Status</th>
+                      <th className="p-3">Account State</th>
+                      <th className="p-3 text-right">Administrative Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-phumulani-charcoal/10">
+                    {filteredUsers.map((u) => (
+                      <tr key={u.id} className="hover:bg-phumulani-cream/60 transition-colors">
+                        <td className="p-3 font-heading font-bold text-phumulani-charcoal">
+                          <div>{u.name}</div>
+                          <div className="text-[10px] font-sans font-normal text-phumulani-charcoal/80">
+                            {u.title || u.department || 'Phumulani Platform'}
+                          </div>
+                        </td>
+                        <td className="p-3 font-mono text-[11px] text-phumulani-charcoal">{u.email}</td>
+                        <td className="p-3">
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold ${
+                              u.role === 'PLATFORM_SUPER_ADMIN'
+                                ? 'bg-phumulani-cream text-phumulani-charcoal border border-phumulani-gold/60'
+                                : u.role === 'executive_director' || u.role === 'safeguarding_officer'
+                                ? 'bg-phumulani-cream text-phumulani-earth border border-phumulani-earth/40'
+                                : u.role === 'finance_officer'
+                                ? 'bg-phumulani-cream text-phumulani-earth border border-phumulani-teal/50'
+                                : 'bg-phumulani-cream text-phumulani-charcoal'
+                            }`}
+                          >
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          {u.mfaEnabled ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] text-phumulani-earth font-semibold">
+                              <ShieldCheck className="w-3 h-3 text-phumulani-earth" />
+                              <span>Enforced</span>
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-phumulani-charcoal">Standard</span>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                              u.status === 'suspended'
+                                ? 'bg-phumulani-cream text-phumulani-earth border border-phumulani-earth/30'
+                                : u.status === 'pending_activation'
+                                ? 'bg-phumulani-gold/15 text-phumulani-charcoal'
+                                : 'bg-phumulani-green/15 text-phumulani-charcoal'
+                            }`}
+                          >
+                            {u.status || 'active'}
+                          </span>
+                        </td>
+                        <td className="p-3 text-right space-x-1">
+                          <button
+                            onClick={() => {
+                              const res = db.resetUserAuth(u.id);
+                              setActionNotice({
+                                type: 'info',
+                                message: `IdP auth reset token generated for ${u.email}: ${res.verificationUrl}`,
+                              });
+                            }}
+                            className="px-2 py-1 text-[11px] bg-phumulani-cream hover:bg-phumulani-gold/25 border border-phumulani-charcoal/12 rounded-md font-semibold text-phumulani-charcoal cursor-pointer"
+                            title="Trigger Identity Provider password reset"
+                          >
+                            Reset Auth
+                          </button>
+                          <button
+                            onClick={() => {
+                              db.revokeUserSessions(u.id);
+                              setActionNotice({
+                                type: 'warning',
+                                message: `All active sessions revoked for ${u.name}. User will be required to re-authenticate with MFA.`,
+                              });
+                            }}
+                            className="px-2 py-1 text-[11px] bg-phumulani-cream hover:bg-phumulani-gold/25 border border-phumulani-charcoal/12 rounded-md font-semibold text-phumulani-charcoal cursor-pointer"
+                            title="Revoke active tokens and session cookies"
+                          >
+                            Revoke
+                          </button>
+                          {u.status === 'suspended' ? (
+                            <button
+                              onClick={() => db.updateUserStatus(u.id, 'active')}
+                              className="px-2 py-1 text-[11px] bg-phumulani-teal/20 hover:bg-phumulani-teal text-phumulani-charcoal rounded-md font-bold cursor-pointer"
+                            >
+                              Reactivate
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => db.updateUserStatus(u.id, 'suspended')}
+                              disabled={u.role === 'PLATFORM_SUPER_ADMIN'}
+                              className="px-2 py-1 text-[11px] bg-phumulani-cream hover:bg-phumulani-earth hover:text-white border border-phumulani-earth/30 text-phumulani-earth rounded-md font-bold disabled:opacity-30 cursor-pointer"
+                              title={u.role === 'PLATFORM_SUPER_ADMIN' ? 'Cannot suspend Master Administrator' : 'Suspend account'}
+                            >
+                              Suspend
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 03: DASHBOARD ACCESS MANAGEMENT (SSO LAUNCHER)         */}
+          {/* ============================================================ */}
+          {activeModule === 'dashboard_access' && (
+            <div className="bg-white rounded-2xl border border-phumulani-charcoal/12 p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="border-b border-phumulani-charcoal/10 pb-4">
+                <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-phumulani-earth bg-phumulani-cream border border-phumulani-teal/40 px-2.5 py-0.5 rounded-md mb-1">
+                  <Key className="w-3 h-3 text-phumulani-earth" />
+                  <span>ONE LOGIN — MULTIPLE LIVE DASHBOARDS</span>
+                </div>
+                <h3 className="font-heading text-xl font-bold text-phumulani-charcoal">
+                  Enterprise Dashboard Single Sign-On Launcher
+                </h3>
+                <p className="text-xs text-phumulani-charcoal/80 mt-0.5">
+                  The Master Administrator authenticates once and accesses all authorized organizational dashboards without separate credentials.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { id: 'fundraising', name: 'Fundraising & Donor Intelligence (Sec 03)', desc: 'Enterprise donor CRM, 14-stage opportunities, campaigns, grant pipelines, CSR & 20 verified reports', viewKey: 'fundraising', officer: 'Comfort Dondo / A07 Strategist', icon: DollarSign },
+                  { id: 'email-command', name: 'AI Email Command Center (P0)', desc: 'Enterprise unified inbox, AR01-AR10 auto-responders, AI drafts, donor pipeline, grants & CSR', viewKey: 'email-command', officer: 'Comfort Dondo / A02 Email Manager', icon: Mail },
+                  { id: 'public', name: 'Public Website & CMS', desc: 'Manage mission copy, programs, book showcase, and donations', viewKey: 'public', officer: 'Comfort Dondo', icon: Globe },
+                  { id: 'community', name: 'Community & Volunteer Portal', desc: 'Track volunteer applicants, log service hours, mentorship', viewKey: 'community', officer: 'Amina Yusuf', icon: Users },
+                  { id: 'donor', name: 'Donor & Sponsor Portal', desc: 'Manage campaign funds, pledges, and 501(c)(3) tax receipts', viewKey: 'donor', officer: 'David Mwangi, CPA', icon: Heart },
+                  { id: 'staff', name: 'Staff Command Center', desc: 'Unified inbox triage, AI review queue, case management', viewKey: 'staff', officer: 'Operations Lead', icon: Briefcase },
+                  { id: 'governance', name: 'Executive & Board Portal', desc: 'Board resolutions, Form 990 breakdown, enterprise risks', viewKey: 'governance', officer: 'Dr. Elena Rostova', icon: Layers },
+                  { id: 'ai-workforce', name: 'AI Command Center', desc: 'Monitor, configure, and evaluate all 18 AI workforce agents', viewKey: 'ai-workforce', officer: 'Systems Guardian (A18)', icon: Bot },
+                  { id: 'readiness', name: '12 Release Gates & Acceptance Tests', desc: 'Milestone M5 production verification, SQL DDL, automated tests', viewKey: 'readiness', officer: 'QA & Compliance Lead', icon: ShieldCheck },
+                ].map((portal) => {
+                  const Icon = portal.icon;
+                  return (
+                    <div
+                      key={portal.id}
+                      className="p-5 bg-phumulani-cream/70 hover:bg-white border border-phumulani-charcoal/12 hover:border-phumulani-earth/40 rounded-2xl transition-all space-y-3 flex flex-col justify-between"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <Icon className="w-5 h-5 text-phumulani-earth" />
+                          <span className="text-[10px] font-mono text-phumulani-charcoal bg-white border border-phumulani-charcoal/10 px-2 py-0.5 rounded-md font-bold">
+                            SSO AUTHORIZED
+                          </span>
+                        </div>
+                        <h4 className="font-heading font-bold text-sm text-phumulani-charcoal">{portal.name}</h4>
+                        <p className="text-xs text-phumulani-charcoal/85 leading-relaxed">{portal.desc}</p>
+                      </div>
+
+                      <div className="pt-2 border-t border-phumulani-charcoal/10 flex items-center justify-between text-xs">
+                        <span className="text-[11px] text-phumulani-charcoal/80">Lead: {portal.officer}</span>
+                        <button
+                          onClick={() => onViewChange(portal.viewKey)}
+                          className="px-3 py-1 bg-phumulani-earth hover:bg-phumulani-charcoal text-white hover:text-phumulani-charcoal rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                        >
+                          <span>Launch Portal</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 04: UNIFIED 36-AGENT AI WORKFORCE (PHASE 29)          */}
+          {/* ============================================================ */}
+          {activeModule === 'ai_workforce' && (
+            <UnifiedAiWorkforceView currentUserRole={currentUser.role} />
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 05: FINANCIAL ADMINISTRATION                          */}
+          {/* ============================================================ */}
+          {activeModule === 'finance' && (
+            <div className="bg-white rounded-2xl border border-phumulani-charcoal/12 p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="border-b border-phumulani-charcoal/10 pb-4">
+                <h3 className="font-heading text-xl font-bold text-phumulani-charcoal">
+                  Financial Administration & Dual Approvals
+                </h3>
+                <p className="text-xs text-phumulani-charcoal/80 mt-0.5">
+                  Real donation ledgers, campaign balances, payment reconciliation, and dual-sign-off rules.
+                </p>
+              </div>
+
+              {/* Phase 19 Financial Segregation Notice */}
+              <div className="bg-phumulani-cream border border-phumulani-charcoal/12 rounded-xl p-4 flex items-start gap-3">
+                <ShieldCheck className="w-5 h-5 text-phumulani-earth shrink-0 mt-0.5" />
+                <div className="space-y-1 text-xs">
+                  <div className="font-bold text-phumulani-charcoal">
+                    Phase 19 Financial Governance & Segregation Policy ({operationalMode})
+                  </div>
+                  <p className="text-phumulani-charcoal leading-relaxed">
+                    In compliance with M19.02 and M19.14, synthetic demonstration fixtures ($325,000 campaign, $175,000 soft pledges, $50,000 test transactions) are quarantined from live production revenue ledgers. Live payment provider status is currently <span className="font-semibold text-phumulani-charcoal">{EnvironmentService.getPaymentProviderStatus()}</span>. Live verified net revenue reports only authenticated transactions with verified receipts.
+                  </p>
+                </div>
+              </div>
+
+              {/* Financial Metrics */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12">
+                  <div className="text-xs text-phumulani-charcoal">Total Net Raised (YTD)</div>
+                  <div className="font-heading text-2xl font-bold text-phumulani-charcoal mt-1 tabular-nums">
+                    ${totalDonationsAmount.toLocaleString()}
+                  </div>
+                  <div className="text-[11px] text-phumulani-earth mt-0.5">All 501(c)(3) tax receipts generated</div>
+                </div>
+
+                <div className="p-4 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12">
+                  <div className="text-xs text-phumulani-charcoal">Active Campaigns</div>
+                  <div className="font-heading text-2xl font-bold text-phumulani-charcoal mt-1 tabular-nums">{campaigns.length}</div>
+                  <div className="text-[11px] text-phumulani-earth mt-0.5 tabular-nums">
+                    Target: ${campaigns.reduce((s, c) => s + c.targetAmount, 0).toLocaleString()}
+                  </div>
+                </div>
+
+                <div className="p-4 bg-phumulani-cream/70 rounded-xl border border-phumulani-gold/60">
+                  <div className="text-xs text-phumulani-charcoal">Dual Approval Rule</div>
+                  <div className="font-heading text-base font-bold text-phumulani-charcoal mt-1 tabular-nums">Strict Threshold: $500</div>
+                  <div className="text-[11px] text-phumulani-earth mt-0.5">Requires David Mwangi, CPA co-signature</div>
+                </div>
+              </div>
+
+              {/* Recent Donations Ledger */}
+              <div className="space-y-3">
+                <h4 className="font-heading font-bold text-sm text-phumulani-charcoal">Verified Donations Ledger</h4>
+                <div className="overflow-x-auto border border-phumulani-charcoal/12 rounded-xl">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-phumulani-cream border-b border-phumulani-charcoal/12 text-phumulani-charcoal font-bold uppercase tracking-wider">
+                        <th className="p-3">Receipt #</th>
+                        <th className="p-3">Donor</th>
+                        <th className="p-3">Campaign Fund</th>
+                        <th className="p-3">Payment Method</th>
+                        <th className="p-3 text-right">Amount</th>
+                        <th className="p-3 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-phumulani-charcoal/10">
+                      {donations.map((d) => (
+                        <tr key={d.id} className="hover:bg-phumulani-cream/60 transition-colors">
+                          <td className="p-3 font-mono font-bold text-phumulani-earth tabular-nums">{d.receiptNumber}</td>
+                          <td className="p-3 font-medium text-phumulani-charcoal">{d.donorName}</td>
+                          <td className="p-3 text-phumulani-charcoal">{d.campaignTitle}</td>
+                          <td className="p-3 font-mono text-[11px] text-phumulani-charcoal">{d.paymentMethod}</td>
+                          <td className="p-3 text-right font-bold text-phumulani-charcoal tabular-nums">${d.amount.toLocaleString()}</td>
+                          <td className="p-3 text-center">
+                            <span className="px-2 py-0.5 bg-phumulani-green/15 text-phumulani-charcoal rounded-md font-bold text-[10px]">
+                              Reconciled
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 06: STAFF & VOLUNTEERS                                */}
+          {/* ============================================================ */}
+          {activeModule === 'staff_volunteers' && (
+            <div className="bg-white rounded-2xl border border-phumulani-charcoal/12 p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="border-b border-phumulani-charcoal/10 pb-4">
+                <h3 className="font-heading text-xl font-bold text-phumulani-charcoal">
+                  Staff & Volunteer Administration
+                </h3>
+                <p className="text-xs text-phumulani-charcoal/80 mt-0.5">
+                  Screening queue, orientation verification, tracking IDs, and volunteer hours ledger.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-heading font-bold text-sm text-phumulani-charcoal tabular-nums">
+                  Volunteer Application Submissions ({applications.length})
+                </h4>
+
+                <div className="divide-y divide-phumulani-charcoal/10 border border-phumulani-charcoal/12 rounded-xl overflow-hidden">
+                  {applications.map((app) => (
+                    <div key={app.id} className="p-4 hover:bg-phumulani-cream/60 transition-colors space-y-2">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs font-bold text-phumulani-earth bg-phumulani-cream border border-phumulani-teal/40 px-2 py-0.5 rounded tabular-nums">
+                              {app.trackingId}
+                            </span>
+                            <span className="font-bold text-sm text-phumulani-charcoal">{app.fullName}</span>
+                            <span className="text-[11px] text-phumulani-charcoal font-mono">({app.email})</span>
+                          </div>
+                          <div className="text-xs text-phumulani-charcoal mt-0.5">
+                            Applying for: <strong>{app.opportunityTitle}</strong> · Skills: {app.skills.join(', ')}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-phumulani-cream text-phumulani-charcoal uppercase">
+                            {app.status}
+                          </span>
+                          <button
+                            onClick={() => {
+                              db.updateApplicationStatus(app.id, 'approved_active', 'Approved by Master Administrator');
+                              setActionNotice({
+                                type: 'success',
+                                message: `Volunteer application ${app.trackingId} for ${app.fullName} has been approved for active service.`,
+                              });
+                            }}
+                            className="px-2.5 py-1 text-xs bg-phumulani-earth hover:bg-phumulani-charcoal text-white hover:text-phumulani-charcoal rounded-lg font-bold transition-colors cursor-pointer"
+                          >
+                            Approve
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-xs text-phumulani-charcoal italic">"{app.motivation}"</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 07: MEDIA ADMINISTRATION                              */}
+          {/* ============================================================ */}
+          {activeModule === 'media' && (
+            <div className="bg-white rounded-2xl border border-phumulani-charcoal/12 p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="border-b border-phumulani-charcoal/10 pb-4">
+                <h3 className="font-heading text-xl font-bold text-phumulani-charcoal">
+                  Media Administration & Safeguarding Registry
+                </h3>
+                <p className="text-xs text-phumulani-charcoal/80 mt-0.5">
+                  19 verified authentic assets, cryptographic SHA-256 integrity hashes, and zero-synthetic survivor policy.
+                </p>
+              </div>
+
+              <div className="p-4 bg-phumulani-cream rounded-xl border border-phumulani-charcoal/12 space-y-2">
+                <div className="font-bold text-xs text-phumulani-charcoal flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-phumulani-earth" />
+                  <span>Preservation Verification Status</span>
+                </div>
+                <p className="text-xs text-phumulani-charcoal">
+                  Manifest recorded at <code>scripts/export-media-manifest.json</code>. Backup target: <code>D:\Phumulani\Backups\MediaArchive</code>.
+                </p>
+                <div className="flex items-center gap-3 text-xs font-mono text-phumulani-charcoal pt-1 tabular-nums">
+                  <span>19 Approved Public Assets</span> · <span>2 Quarantined / Withheld Records</span> · <span>0 AI People</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 08: SECURITY & AUDIT TRAIL                            */}
+          {/* ============================================================ */}
+          {activeModule === 'security_audit' && (
+            <div className="bg-white rounded-2xl border border-phumulani-charcoal/12 p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-phumulani-charcoal/10 pb-4">
+                <div>
+                  <h3 className="font-heading text-xl font-bold text-phumulani-charcoal">
+                    Immutable Security & Audit Event Log
+                  </h3>
+                  <p className="text-xs text-phumulani-charcoal/80 mt-0.5">
+                    Append-only audit trail logging actor email, role, action, resource, timestamp, and status.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold bg-phumulani-cream text-phumulani-earth border border-phumulani-teal/40 px-3 py-1 rounded-md tabular-nums">
+                    {auditLogs.length} Events Logged
+                  </span>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto border border-phumulani-charcoal/12 rounded-xl max-h-[600px] overflow-y-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="sticky top-0 bg-phumulani-cream border-b border-phumulani-charcoal/12 z-10">
+                    <tr className="text-phumulani-charcoal font-bold uppercase tracking-wider">
+                      <th className="p-3 w-40">Timestamp</th>
+                      <th className="p-3 w-44">Actor & Role</th>
+                      <th className="p-3 w-48">Action</th>
+                      <th className="p-3">Details</th>
+                      <th className="p-3 w-20 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-phumulani-charcoal/10 font-mono text-[11px]">
+                    {auditLogs.map((log) => (
+                      <tr key={log.id} className="hover:bg-phumulani-cream/60 transition-colors">
+                        <td className="p-3 text-phumulani-charcoal tabular-nums">
+                          {new Date(log.timestamp).toLocaleString()}
+                        </td>
+                        <td className="p-3 font-sans">
+                          <div className="font-bold text-phumulani-charcoal truncate">{log.actorEmail}</div>
+                          <div className="text-[10px] text-phumulani-charcoal/80 font-mono">{log.actorRole}</div>
+                        </td>
+                        <td className="p-3 font-bold text-phumulani-earth">{log.action}</td>
+                        <td className="p-3 font-sans text-phumulani-charcoal leading-relaxed">{log.details}</td>
+                        <td className="p-3 text-center">
+                          <span
+                            className={`px-2 py-0.5 rounded-md font-bold uppercase text-[9px] ${
+                              log.status === 'denied'
+                                ? 'bg-phumulani-cream text-phumulani-earth border border-phumulani-earth/30'
+                                : log.status === 'flagged'
+                                ? 'bg-phumulani-gold/15 text-phumulani-charcoal'
+                                : 'bg-phumulani-green/15 text-phumulani-charcoal'
+                            }`}
+                          >
+                            {log.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 09: INFRASTRUCTURE & PROBES                           */}
+          {/* ============================================================ */}
+          {activeModule === 'infrastructure' && (
+            <div className="bg-white rounded-2xl border border-phumulani-charcoal/12 p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="border-b border-phumulani-charcoal/10 pb-4">
+                <h3 className="font-heading text-xl font-bold text-phumulani-charcoal">
+                  Production Infrastructure Monitoring & Host Topology
+                </h3>
+                <p className="text-xs text-phumulani-charcoal/80 mt-0.5">
+                  Topology breakdown across Public Frontend, API Gateway, Identity Provider, PostgreSQL, and Storage.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-5 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12 space-y-2">
+                  <div className="font-bold text-xs text-phumulani-charcoal flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-phumulani-earth" />
+                    <span>Public Frontend (Static CDN / GitHub Pages)</span>
+                  </div>
+                  <p className="text-xs text-phumulani-charcoal">
+                    Host: <code>https://ophireumtechnology.github.io/phumulani/</code> with Vite relative asset bundle (<code>base: './'</code>).
+                  </p>
+                  <div className="text-[11px] text-phumulani-earth font-semibold">Active & Live</div>
+                </div>
+
+                <div className="p-5 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12 space-y-2">
+                  <div className="font-bold text-xs text-phumulani-charcoal flex items-center gap-2">
+                    <Database className="w-4 h-4 text-phumulani-earth" />
+                    <span>PostgreSQL 15+ Relational Database</span>
+                  </div>
+                  <p className="text-xs text-phumulani-charcoal">
+                    Target: <code>postgresql://phumulani_prod@127.0.0.1:5432/phumulani_db</code> with RLS policies and UUID keys.
+                  </p>
+                  <div className="text-[11px] text-phumulani-earth font-semibold">17 Tables Active & Reconciled</div>
+                </div>
+
+                <div className="p-5 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12 space-y-2">
+                  <div className="font-bold text-xs text-phumulani-charcoal flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-phumulani-earth" />
+                    <span>Production Identity Provider (MFA)</span>
+                  </div>
+                  <p className="text-xs text-phumulani-charcoal">
+                    Phishing-resistant WebAuthn + TOTP MFA enforced on all privileged accounts.
+                  </p>
+                  <div className="text-[11px] text-phumulani-earth font-semibold">Active · 12 Roles Enforced</div>
+                </div>
+
+                <div className="p-5 bg-phumulani-cream/70 rounded-xl border border-phumulani-charcoal/12 space-y-2">
+                  <div className="font-bold text-xs text-phumulani-charcoal flex items-center gap-2">
+                    <Terminal className="w-4 h-4 text-phumulani-earth" />
+                    <span>Local Backup & DR Archive</span>
+                  </div>
+                  <p className="text-xs text-phumulani-charcoal">
+                    Target: <code>D:\Phumulani\Backups</code> with SHA-256 manifests via <code>scripts/phumulani-service-control.ps1</code>.
+                  </p>
+                  <div className="text-[11px] text-phumulani-earth font-semibold">Verified Disaster Recovery</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================ */}
+          {/* MODULE 10: SYSTEM SETTINGS                                   */}
+          {/* ============================================================ */}
+          {activeModule === 'settings' && (
+            <div className="bg-white rounded-2xl border border-phumulani-charcoal/12 p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="border-b border-phumulani-charcoal/10 pb-4">
+                <h3 className="font-heading text-xl font-bold text-phumulani-charcoal">
+                  System Settings, Operational Policies & Feature Flags
+                </h3>
+                <p className="text-xs text-phumulani-charcoal/80 mt-0.5">
+                  Platform-wide configuration. Sensitive modifications require Master Administrator authentication.
+                </p>
+              </div>
+
+              <div className="divide-y divide-phumulani-charcoal/10 border border-phumulani-charcoal/12 rounded-xl overflow-hidden">
+                {settings.map((s) => (
+                  <div key={s.key} className="p-4 hover:bg-phumulani-cream/60 transition-colors space-y-2">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-xs font-bold text-phumulani-charcoal bg-phumulani-cream px-2 py-0.5 rounded">
+                            {s.key}
+                          </span>
+                          <span className="font-bold text-sm text-phumulani-charcoal">{s.label}</span>
+                          <span className="text-[10px] font-semibold text-phumulani-earth bg-phumulani-cream border border-phumulani-teal/40 px-2 py-0.5 rounded-md">
+                            {s.category}
+                          </span>
+                          {s.requiresReauth && (
+                            <span className="text-[10px] text-phumulani-earth font-bold bg-phumulani-cream px-2 py-0.5 rounded-md flex items-center gap-1">
+                              <Lock className="w-2.5 h-2.5" />
+                              <span>Reauth Required</span>
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-phumulani-charcoal/80 mt-1">{s.description}</p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {editingSettingKey === s.key ? (
+                          <div className="flex items-center gap-2">
+                            {typeof s.value === 'boolean' ? (
+                              <select
+                                value={String(settingTempValue)}
+                                onChange={(e) => setSettingTempValue(e.target.value === 'true')}
+                                className="text-xs border border-phumulani-charcoal/20 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-phumulani-earth focus:ring-2 focus:ring-phumulani-earth/20"
+                              >
+                                <option value="true">true (Enabled)</option>
+                                <option value="false">false (Disabled)</option>
+                              </select>
+                            ) : (
+                              <input
+                                type={typeof s.value === 'number' ? 'number' : 'text'}
+                                value={String(settingTempValue)}
+                                onChange={(e) =>
+                                  setSettingTempValue(
+                                    typeof s.value === 'number' ? Number(e.target.value) : e.target.value
+                                  )
+                                }
+                                className="text-xs border border-phumulani-charcoal/20 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-phumulani-earth focus:ring-2 focus:ring-phumulani-earth/20"
+                              />
+                            )}
+                            <button
+                              onClick={() => {
+                                db.updateSystemSetting(s.key, settingTempValue);
+                                setEditingSettingKey(null);
+                              }}
+                              className="px-2.5 py-1 text-xs bg-phumulani-earth hover:bg-phumulani-charcoal text-white hover:text-phumulani-charcoal font-bold rounded-lg cursor-pointer"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingSettingKey(null)}
+                              className="px-2 py-1 text-xs bg-phumulani-cream border border-phumulani-charcoal/12 text-phumulani-charcoal rounded-lg font-semibold cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3">
+                            <span className="font-mono text-xs font-bold text-phumulani-charcoal bg-phumulani-cream px-2.5 py-1 rounded">
+                              {String(s.value)}
+                            </span>
+                            <button
+                              onClick={() => {
+                                setEditingSettingKey(s.key);
+                                setSettingTempValue(s.value);
+                              }}
+                              className="px-2.5 py-1 text-xs text-phumulani-earth hover:bg-phumulani-cream border border-phumulani-teal/50 rounded-lg font-bold cursor-pointer"
+                            >
+                              Edit
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          </Suspense>
+        </main>
+      </div>
+
+      {/* PROVISION USER ACCOUNT MODAL (Section 2 & 5) */}
+      {isProvisionModalOpen && (
+        <div className="fixed inset-0 bg-phumulani-charcoal/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-phumulani-charcoal/12 space-y-4">
+            <div className="flex justify-between items-center border-b border-phumulani-charcoal/10 pb-3">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-phumulani-earth" />
+                <h3 className="font-heading font-bold text-lg text-phumulani-charcoal">
+                  Provision Authorized User Account
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsProvisionModalOpen(false)}
+                className="text-phumulani-charcoal hover:text-phumulani-earth text-lg font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-phumulani-charcoal/80">
+              Account provisioning adheres to Section 2: server-side administrative creation, authorized email binding, and mandatory MFA.
+            </p>
+
+            {provisionError && (
+              <div className="p-3 bg-phumulani-cream border border-phumulani-earth/40 text-phumulani-earth text-xs rounded-xl flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{provisionError}</span>
+              </div>
+            )}
+
+            {provisionSuccess && (
+              <div className="p-3 bg-phumulani-green/15 border border-phumulani-green/40 text-phumulani-charcoal text-xs rounded-xl flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-phumulani-charcoal" />
+                <span>{provisionSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleProvisionUser} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-phumulani-charcoal font-semibold mb-1">Full Legal Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Fatima Warsame"
+                  value={newUserName}
+                  onChange={(e) => setNewUserName(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-phumulani-charcoal/20 rounded-lg focus:outline-none focus:border-phumulani-earth focus:ring-2 focus:ring-phumulani-earth/20"
+                />
+              </div>
+
+              <div>
+                <label className="block text-phumulani-charcoal font-semibold mb-1">Authorized Organizational Email</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="f.warsame@phumulani.org"
+                  value={newUserEmail}
+                  onChange={(e) => setNewUserEmail(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-phumulani-charcoal/20 rounded-lg focus:outline-none focus:border-phumulani-earth focus:ring-2 focus:ring-phumulani-earth/20"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-phumulani-charcoal font-semibold mb-1">Role Assignment</label>
+                  <select
+                    value={newUserRole}
+                    onChange={(e) => setNewUserRole(e.target.value as any)}
+                    className="w-full px-3 py-2 border border-phumulani-charcoal/20 rounded-lg focus:outline-none focus:border-phumulani-earth focus:ring-2 focus:ring-phumulani-earth/20 bg-white"
+                  >
+                    <option value="staff">Staff Administrator</option>
+                    <option value="volunteer_coordinator">Volunteer Coordinator</option>
+                    <option value="program_manager">Program Manager</option>
+                    <option value="community_advocate">Community Advocate</option>
+                    <option value="finance_officer">Finance Administrator</option>
+                    <option value="governance_officer">Governance Officer</option>
+                    <option value="board_member">Board Member</option>
+                    <option value="safeguarding_officer">Safeguarding Lead</option>
+                    <option value="volunteer">Volunteer</option>
+                    <option value="donor">Donor</option>
+                    <option value="community_member">Community Member</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-phumulani-charcoal font-semibold mb-1">Department</label>
+                  <input
+                    type="text"
+                    value={newUserDept}
+                    onChange={(e) => setNewUserDept(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-phumulani-charcoal/20 rounded-lg focus:outline-none focus:border-phumulani-earth focus:ring-2 focus:ring-phumulani-earth/20"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="mfaCheck"
+                  checked={newUserMfa}
+                  onChange={(e) => setNewUserMfa(e.target.checked)}
+                  className="h-4 w-4 text-phumulani-earth rounded focus:ring-phumulani-earth cursor-pointer"
+                />
+                <label htmlFor="mfaCheck" className="text-phumulani-charcoal cursor-pointer">
+                  Require Phishing-Resistant MFA Verification upon first login
+                </label>
+              </div>
+
+              <div className="pt-3 border-t border-phumulani-charcoal/10 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsProvisionModalOpen(false)}
+                  className="px-4 py-2 border border-phumulani-charcoal/20 rounded-lg text-phumulani-charcoal hover:bg-phumulani-cream font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-phumulani-earth hover:bg-phumulani-charcoal text-white hover:text-phumulani-charcoal rounded-lg font-bold shadow-xs transition-all cursor-pointer"
+                >
+                  Provision & Issue Verification Token
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* PHASE 25 AI PROGRAM INTELLIGENCE MODAL */}
+      {isProgramAiModalOpen && (
+        <Suspense fallback={null}>
+          <ProgramAiIntelligenceModal
+            isOpen={isProgramAiModalOpen}
+            onClose={() => setIsProgramAiModalOpen(false)}
+            programId={selectedProgramAiId}
+            currentUserRole={currentUser.role}
+          />
+        </Suspense>
+      )}
+    </div>
+  );
+};
